@@ -14,6 +14,7 @@ export interface User {
   bio: string;
   interests: Interest[];
   intents?: Intent[];
+  skills?: string[];        // specific picks: languages, design types, sports (drive matching too)
   hobbies?: string[];
   lookingFor?: string;
   canHelp?: string;

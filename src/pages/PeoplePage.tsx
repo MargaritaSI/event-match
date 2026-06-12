@@ -4,13 +4,14 @@ import { Input } from '@progress/kendo-react-inputs';
 import { MOCK_USERS, ICE_BREAKERS, INTEREST_LABELS, INTENT_LABELS, CURRENT_USER, FACETS, EVENT_NAME } from '../data/mockData';
 import { InterestBadge } from '../components/InterestBadge';
 import { Avatar } from '../components/Avatar';
-import { filterAndSort, commonInterests, topInterests } from '../lib/peopleLogic';
+import { filterAndSort, commonInterests, commonSkills, affinity, topInterests } from '../lib/peopleLogic';
 import type { SortMode, PeopleFilter } from '../lib/peopleLogic';
 import { intentSynergies } from '../lib/intentLogic';
 import { useT } from '../i18n';
 import type { User, Interest } from '../types';
 
 const MY_INTERESTS: Interest[] = ['health', 'mobile', 'startup', 'design'];
+const MY_SKILLS = CURRENT_USER.skills || [];
 const MY_INTENTS = CURRENT_USER.intents || [];
 // Filter chips ordered by how common each interest is in this crowd (most popular first)
 const FILTER_INTERESTS: Interest[] = topInterests(MOCK_USERS).map(x => x.interest);
@@ -53,7 +54,7 @@ export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile 
   }
 
   const filtered = useMemo(
-    () => filterAndSort(MOCK_USERS, { filter, search, sort, myInterests: MY_INTERESTS }),
+    () => filterAndSort(MOCK_USERS, { filter, search, sort, myInterests: MY_INTERESTS, mySkills: MY_SKILLS }),
     [search, filter, sort],
   );
 
@@ -130,6 +131,8 @@ export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {filtered.map(user => {
           const common = getCommonInterests(user);
+          const skillsCommon = commonSkills(user, MY_SKILLS);
+          const aff = affinity(user, MY_INTERESTS, MY_SKILLS);
           const isMatched = matched.has(user.id);
           const isPending = pendingSent.has(user.id);
           const isOpen = expanded === user.id;
@@ -156,8 +159,8 @@ export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile 
                     </span>
                     {user.speaker && <span title="Speaker" style={{ fontSize: 12, flexShrink: 0 }}>🎤</span>}
                     {isMatched && <span style={{ fontSize: 13 }}>✅</span>}
-                    {common.length > 0 && !isMatched && (
-                      <span style={{ fontSize: 11, color: '#6c63ff', whiteSpace: 'nowrap' }}>· {common.length} common</span>
+                    {aff > 0 && !isMatched && (
+                      <span style={{ fontSize: 11, color: '#6c63ff', whiteSpace: 'nowrap' }}>· {aff} common</span>
                     )}
                     {intentSynergies(MY_INTENTS, user.intents).length > 0 && (
                       <span title="Intent match" style={{ fontSize: 11, whiteSpace: 'nowrap' }}>🎯</span>
@@ -191,6 +194,21 @@ export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile 
                   <div style={{ marginBottom: 10 }}>
                     {user.interests.map(i => <InterestBadge key={i} interest={i} small />)}
                   </div>
+
+                  {/* Skills, shared ones highlighted */}
+                  {user.skills && user.skills.length > 0 && (
+                    <div style={{ marginBottom: 10, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {user.skills.map(s => {
+                        const shared = skillsCommon.includes(s);
+                        return (
+                          <span key={s} style={{
+                            fontSize: 11.5, borderRadius: 12, padding: '2px 9px', fontWeight: shared ? 700 : 500,
+                            background: shared ? '#e8f5e9' : '#f0f0f0', color: shared ? '#2e7d32' : '#666',
+                          }}>{shared ? '✓ ' : ''}{s}</span>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   {/* Intent badges */}
                   {user.intents && user.intents.length > 0 && (

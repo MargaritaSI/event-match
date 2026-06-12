@@ -6,6 +6,17 @@ export function commonInterests(user: User, myInterests: Interest[]): Interest[]
   return user.interests.filter(i => myInterests.includes(i));
 }
 
+/** Specific skills (languages/design/sport) the current user shares with `user`. */
+export function commonSkills(user: User, mySkills: string[] = []): string[] {
+  const mine = new Set(mySkills.map(s => s.toLowerCase()));
+  return (user.skills || []).filter(s => mine.has(s.toLowerCase()));
+}
+
+/** Combined affinity score = shared interests + shared skills. */
+export function affinity(user: User, myInterests: Interest[], mySkills: string[] = []): number {
+  return commonInterests(user, myInterests).length + commonSkills(user, mySkills).length;
+}
+
 /** Count how often each interest appears across a set of people (popularity). */
 export function interestFrequency(users: User[]): Record<string, number> {
   const freq: Record<string, number> = {};
@@ -28,20 +39,21 @@ export function topInterests(users: User[]): { interest: Interest; count: number
 export type SortMode = 'common' | 'name';
 
 /**
- * Sort users. 'common' = most shared interests with me first; 'name' = alphabetical.
+ * Sort users. 'common' = highest affinity (shared interests + skills) first; 'name' = alphabetical.
  */
 export function sortUsers(
   users: User[],
   mode: SortMode,
   myInterests: Interest[],
+  mySkills: string[] = [],
 ): User[] {
   const copy = [...users];
   if (mode === 'name') {
     return copy.sort((a, b) => a.name.localeCompare(b.name));
   }
-  // common
+  // common — by combined affinity
   return copy.sort((a, b) => {
-    const diff = commonInterests(b, myInterests).length - commonInterests(a, myInterests).length;
+    const diff = affinity(b, myInterests, mySkills) - affinity(a, myInterests, mySkills);
     return diff !== 0 ? diff : a.name.localeCompare(b.name);
   });
 }
@@ -58,6 +70,7 @@ export function matchesSearch(user: User, query: string): boolean {
     (user.lookingFor || '').toLowerCase().includes(q) ||
     (user.canHelp || '').toLowerCase().includes(q) ||
     (user.hobbies || []).join(' ').toLowerCase().includes(q) ||
+    (user.skills || []).join(' ').toLowerCase().includes(q) ||
     user.interests.some(i => (INTEREST_LABELS[i] || i).toLowerCase().includes(q))
   );
 }
@@ -72,11 +85,13 @@ export function filterAndSort(
     search: string;
     sort: SortMode;
     myInterests: Interest[];
+    mySkills?: string[];
   },
 ): User[] {
+  const mySkills = opts.mySkills || [];
   const filtered = users.filter(u => {
     if (opts.filter === 'match') {
-      if (commonInterests(u, opts.myInterests).length === 0) return false;
+      if (affinity(u, opts.myInterests, mySkills) === 0) return false; // shared interest OR skill
     } else if (opts.filter === 'speaker') {
       if (!u.speaker) return false;
     } else if (opts.filter !== 'all') {
@@ -84,5 +99,5 @@ export function filterAndSort(
     }
     return matchesSearch(u, opts.search);
   });
-  return sortUsers(filtered, opts.sort, opts.myInterests);
+  return sortUsers(filtered, opts.sort, opts.myInterests, mySkills);
 }

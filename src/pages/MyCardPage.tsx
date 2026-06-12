@@ -9,6 +9,7 @@ import { useGamification } from '../lib/gamification';
 import { ACHIEVEMENTS } from '../lib/gamificationLogic';
 import { load, save, clearAll, getOrCreateUid } from '../lib/storage';
 import { useT } from '../i18n';
+import { FACETS } from '../data/mockData';
 import type { Interest, Intent } from '../types';
 
 const CONTACT_FIELDS = ['telegram', 'instagram', 'linkedin', 'whatsapp', 'other'] as const;
@@ -33,6 +34,9 @@ interface Profile {
   otherLabel: string;
   interests: Interest[];
   intents: Intent[];
+  skills: string[];
+  speaker: boolean;
+  speakerTopic: string;
   hobbies: string;
   lookingFor: string;
   canHelp: string;
@@ -49,6 +53,9 @@ const DEFAULT_PROFILE: Profile = {
   telegram: '@margarita', instagram: '@margarita.dev', linkedin: '', whatsapp: '', otherContact: '', otherLabel: '',
   interests: ['health', 'mobile', 'startup', 'design'],
   intents: ['cofounder', 'learning'],
+  skills: ['Swift', 'UI/UX', 'Running'],
+  speaker: false,
+  speakerTopic: '',
   hobbies: 'Running, Sketching, Cold water swimming',
   lookingFor: 'A backend dev to pair on a health app side-project',
   canHelp: 'iOS/SwiftUI, App Store submission, HealthKit',
@@ -107,6 +114,7 @@ export function MyCardPage({ mySessionIds }: Props) {
         company: profile.company,
         bio: profile.bio,
         interests: profile.interests,
+        skills: profile.skills,
         contacts,
       };
       const data = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
@@ -142,6 +150,13 @@ export function MyCardPage({ mySessionIds }: Props) {
       intents: d.intents.includes(intent)
         ? d.intents.filter(i => i !== intent)
         : [...d.intents, intent],
+    }));
+  }
+
+  function toggleSkill(skill: string) {
+    setDraft(d => ({
+      ...d,
+      skills: d.skills.includes(skill) ? d.skills.filter(s => s !== skill) : [...d.skills, skill],
     }));
   }
 
@@ -319,6 +334,45 @@ export function MyCardPage({ mySessionIds }: Props) {
                 </button>
               ))}
             </div>
+
+            {/* Skills — exact languages / design / sport, multi-select; feeds matching */}
+            <div style={{ fontWeight: 600, fontSize: 14, margin: '16px 0 4px' }}>🧩 Skills</div>
+            <div style={{ fontSize: 12, color: '#999', marginBottom: 10 }}>Pick specifics — these also drive who you match with.</div>
+            {FACETS.map(facet => (
+              <div key={facet.key} style={{ marginBottom: 10 }}>
+                <div style={{ fontSize: 12, color: '#777', marginBottom: 5 }}>{facet.label}</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {facet.options.map(opt => {
+                    const on = draft.skills.includes(opt);
+                    return (
+                      <button
+                        key={opt}
+                        onClick={() => toggleSkill(opt)}
+                        style={{
+                          padding: '5px 11px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 12.5,
+                          background: on ? '#2e7d32' : '#f0f0f0', color: on ? '#fff' : '#555', fontWeight: on ? 600 : 400,
+                        }}
+                      >{on ? '✓ ' : ''}{opt}</button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {/* Speaker */}
+            <div style={{ fontWeight: 600, fontSize: 14, margin: '16px 0 8px' }}>🎤 Speaker</div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', marginBottom: 10 }}>
+              <input
+                type="checkbox"
+                checked={draft.speaker}
+                onChange={e => setDraft(d => ({ ...d, speaker: e.target.checked }))}
+                style={{ width: 18, height: 18, cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: 13.5 }}>I'm a speaker at this event</span>
+            </label>
+            {draft.speaker && (
+              <Field label="Your talk title" value={draft.speakerTopic} onChange={v => setDraft(d => ({ ...d, speakerTopic: v }))} placeholder="e.g. Designing for focus" />
+            )}
           </CardBody>
         </Card>
       </div>
@@ -344,18 +398,35 @@ export function MyCardPage({ mySessionIds }: Props) {
               }
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 20 }}>{profile.firstName} {profile.lastName}</div>
+              <div style={{ fontWeight: 700, fontSize: 20, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {profile.firstName} {profile.lastName}
+                {profile.speaker && <span style={{ fontSize: 11, background: '#fff3e0', color: '#e65100', borderRadius: 6, padding: '2px 8px', fontWeight: 700 }}>🎤 Speaker</span>}
+              </div>
               {profile.role && <div style={{ color: '#6c63ff', fontSize: 13, fontWeight: 600 }}>{profile.role}</div>}
               {profile.company && <div style={{ color: '#666', fontSize: 13 }}>🏢 {profile.company}</div>}
               {profile.city && <div style={{ color: '#666', fontSize: 13 }}>📍 {profile.city}, {profile.country}</div>}
             </div>
           </div>
 
+          {profile.speaker && profile.speakerTopic && (
+            <div style={{ margin: '0 0 12px', padding: '8px 10px', background: '#fff8f0', border: '1px solid #ffe0b2', borderRadius: 8, fontSize: 13 }}>
+              <strong style={{ color: '#e65100' }}>🎤 Speaking:</strong> {profile.speakerTopic}
+            </div>
+          )}
+
           {profile.bio && <p style={{ margin: '0 0 12px', color: '#444', fontSize: 14 }}>{profile.bio}</p>}
 
           <div style={{ marginBottom: 10 }}>
             {profile.interests.map(i => <InterestBadge key={i} interest={i} />)}
           </div>
+
+          {profile.skills.length > 0 && (
+            <div style={{ marginBottom: 10, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              {profile.skills.map(s => (
+                <span key={s} style={{ fontSize: 11.5, background: '#e8f5e9', color: '#2e7d32', borderRadius: 12, padding: '2px 9px', fontWeight: 600 }}>{s}</span>
+              ))}
+            </div>
+          )}
 
           {profile.intents.length > 0 && (
             <div style={{ marginBottom: 14, display: 'flex', flexWrap: 'wrap', gap: 4 }}>

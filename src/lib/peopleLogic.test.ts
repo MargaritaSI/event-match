@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
-  commonInterests, interestFrequency, topInterests, sortUsers, matchesSearch, filterAndSort,
+  commonInterests, commonSkills, affinity, interestFrequency, topInterests, sortUsers, matchesSearch, filterAndSort,
 } from './peopleLogic';
 import type { User, Interest } from '../types';
 
 const me: Interest[] = ['health', 'mobile', 'startup', 'design'];
+const mySkills = ['Swift', 'UI/UX', 'Running'];
 
 function u(id: string, name: string, interests: Interest[], extra: Partial<User> = {}): User {
   return { id, name, bio: '', interests, socials: {}, event: 'e', ...extra };
@@ -21,6 +22,27 @@ describe('commonInterests', () => {
   it('returns only shared interests', () => {
     expect(commonInterests(USERS[0], me)).toEqual(['health', 'mobile', 'startup']);
     expect(commonInterests(USERS[2], me)).toEqual([]);
+  });
+});
+
+describe('commonSkills', () => {
+  it('returns shared skills, case-insensitive', () => {
+    const x = u('s', 'Skilled', ['ai'], { skills: ['swift', 'Go', 'Running'] });
+    expect(commonSkills(x, mySkills).sort()).toEqual(['Running', 'swift']);
+  });
+  it('returns empty when no skills or no overlap', () => {
+    expect(commonSkills(u('a', 'A', ['ai']), mySkills)).toEqual([]);
+    expect(commonSkills(u('b', 'B', ['ai'], { skills: ['Rust'] }), mySkills)).toEqual([]);
+  });
+});
+
+describe('affinity', () => {
+  it('sums shared interests and shared skills', () => {
+    const x = u('x', 'X', ['health', 'mobile'], { skills: ['Swift', 'Rust'] }); // 2 interests + 1 skill
+    expect(affinity(x, me, mySkills)).toBe(3);
+  });
+  it('is zero with no overlap at all', () => {
+    expect(affinity(u('z', 'Z', ['travel']), me, mySkills)).toBe(0);
   });
 });
 
@@ -89,5 +111,17 @@ describe('filterAndSort', () => {
   it('search composes with filter', () => {
     const res = filterAndSort(USERS, { filter: 'all', search: 'alice', sort: 'name', myInterests: me });
     expect(res.map(x => x.name)).toEqual(['Alice']);
+  });
+
+  it('"match" filter includes someone with 0 shared interests but a shared skill', () => {
+    const skillOnly = u('5', 'Eve', ['travel'], { skills: ['Swift'] }); // 0 interest, 1 skill
+    const res = filterAndSort([...USERS, skillOnly], { filter: 'match', search: '', sort: 'common', myInterests: me, mySkills });
+    expect(res.map(x => x.name)).toContain('Eve');
+  });
+
+  it('search matches by skill text', () => {
+    const skilled = u('6', 'Frank', ['ai'], { skills: ['Kotlin'] });
+    const res = filterAndSort([...USERS, skilled], { filter: 'all', search: 'kotlin', sort: 'name', myInterests: me });
+    expect(res.map(x => x.name)).toEqual(['Frank']);
   });
 });
