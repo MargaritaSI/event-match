@@ -118,6 +118,27 @@ Everything works **client‑side** so the demo is instant and the live site is r
   capture logic.
 - **CI/CD:** GitHub Actions builds and deploys to **GitHub Pages** on every push to `main`.
 
+### ⚠️ About the backend (honest note)
+EventMatch ships **without a server** — and that's a deliberate, working architecture for this
+hackathon, not a missing piece:
+
+- **What's real & fully working:** your profile, card editor, skills/intent/interests, matching &
+  ranking, search/filters, Quick Capture → tasks + `.ics`/email reminders, the QR/share‑link contact
+  exchange, gamification, schedule, venue map, and all dashboard numbers (computed live from the data).
+  Your data persists in `localStorage` on your device.
+- **How matching works with no backend:** to connect two real people, your card is **base64‑encoded
+  into a share link / QR**. The other person opens that URL, the app decodes it, and they tap
+  **Connect** — contacts unlock. This means **two judges can genuinely match across two phones with no
+  server at all.**
+- **What's seeded/mocked (because there's no server to hold shared state):** the 25 sample attendees,
+  the incoming meeting requests (the 🔔 inbox), sponsor lead/view counts, and the leaderboard peers.
+  These are realistic placeholders that a backend would otherwise supply.
+- **Why no backend yet:** with one builder and one session, I prioritised a complete, polished,
+  *deployable* experience over standing up auth + a database. The domain logic is already isolated in
+  pure modules, so adding a backend is additive, not a rewrite.
+- **First next step:** a thin **Supabase** layer for live, cross‑device profiles, requests and
+  leaderboard — replacing the seeded data and the share‑link workaround for large crowds (see *Next Steps*).
+
 ---
 
 ## 5. Technical Deep‑Dive

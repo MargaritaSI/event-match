@@ -36,7 +36,7 @@ type Tab = 'people' | 'connections' | 'schedule' | 'map' | 'groups' | 'connect' 
 // so it blends; for the transparent (background-removed) people/refer art the fill is black.
 const BG_V = 2; // bump to cache-bust footer illustrations when the files change
 const TAB_BG: Record<Tab, { img: string; fill: string }> = {
-  people:      { img: 'people.png',     fill: '#efe7da' }, // transparent art on beige
+  people:      { img: 'people.png',     fill: '#fed0af' }, // exact peach from the illustration bg
   connections: { img: 'refer.png',      fill: '#ffffff' }, // art has white areas → white fill
   schedule:    { img: 'leadership.jpg', fill: '#eae0df' },
   map:         { img: 'ferm.jpg',       fill: '#ffb003' },
@@ -47,7 +47,7 @@ const TAB_BG: Record<Tab, { img: string; fill: string }> = {
   sponsors:    { img: 'teams.jpg',      fill: '#39a2fe' },
   organisers:  { img: 'blue.jpg',       fill: '#39a2fe' },
   leaderboard: { img: 'leadership.jpg', fill: '#eae0df' },
-  mycard:      { img: 'people.png',     fill: '#efe7da' },
+  mycard:      { img: 'people.png',     fill: '#fed0af' },
 };
 
 const TAB_META: Record<Tab, { icon: string; label: string }> = {
