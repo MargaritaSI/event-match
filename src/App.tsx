@@ -99,6 +99,13 @@ function AppInner() {
     if (card) setSharedCard(card);
   }, []);
 
+  // Paint html/body with the tab's fill colour so iOS overscroll / safe areas never flash white.
+  useEffect(() => {
+    const fill = TAB_BG[tab].fill;
+    document.documentElement.style.background = fill;
+    document.body.style.background = fill;
+  }, [tab]);
+
   const pendingRequests = requests.filter(r => r.status === 'pending').length;
 
   function acceptRequest(userId: string) {
@@ -140,10 +147,10 @@ function AppInner() {
 
   return (
     <I18nContext.Provider value={i18n}>
-      <div style={{ minHeight: '100vh', background: '#fafafa', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+      <div style={{ minHeight: '100dvh', background: TAB_BG[tab].fill, fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
 
-        {/* Header — title + bell + points */}
-        <div style={{ background: 'linear-gradient(135deg, #6c63ff 0%, #f06292 100%)', padding: '12px 14px 0', color: '#fff', position: 'sticky', top: 0, zIndex: 30 }}>
+        {/* Header — title + bell + points. Extends into the top safe area (notch) so it never shows a gap. */}
+        <div style={{ background: 'linear-gradient(135deg, #6c63ff 0%, #f06292 100%)', padding: 'calc(env(safe-area-inset-top) + 12px) 14px 0', color: '#fff', position: 'sticky', top: 0, zIndex: 30 }}>
           <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 17, fontWeight: 700, whiteSpace: 'nowrap' }}>EventMatch 🤝</div>
@@ -168,22 +175,26 @@ function AppInner() {
             </button>
           </div>
 
-          {/* Scrollable tab ribbon — persistent, scrolls horizontally if it overflows */}
-          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', gap: 2, overflowX: 'auto', marginTop: 8, paddingBottom: 0, WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
-            {TABS.map(tb => (
-              <button key={tb.id} onClick={() => setTab(tb.id)} style={{
-                position: 'relative', flexShrink: 0, padding: '8px 12px', border: 'none', cursor: 'pointer',
-                background: 'none', color: '#fff', fontSize: 13, whiteSpace: 'nowrap',
-                fontWeight: tab === tb.id ? 800 : 500,
-                opacity: tab === tb.id ? 1 : 0.8,
-                borderBottom: tab === tb.id ? '3px solid #fff' : '3px solid transparent',
-              }}>
-                {tb.icon} {tb.label}
-                {tb.id === 'tasks' && pendingTaskCount > 0 && (
-                  <span style={{ marginLeft: 5, background: '#fff', color: '#f06292', borderRadius: 10, padding: '0 6px', fontSize: 10, fontWeight: 800 }}>{pendingTaskCount}</span>
-                )}
-              </button>
-            ))}
+          {/* Scrollable tab ribbon — active tab gets a clear white pill so it's obvious */}
+          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', gap: 6, overflowX: 'auto', marginTop: 10, padding: '0 0 8px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+            {TABS.map(tb => {
+              const active = tab === tb.id;
+              return (
+                <button key={tb.id} onClick={() => setTab(tb.id)} style={{
+                  position: 'relative', flexShrink: 0, padding: '7px 13px', border: 'none', cursor: 'pointer',
+                  borderRadius: 18, fontSize: 13, whiteSpace: 'nowrap',
+                  background: active ? '#fff' : 'rgba(255,255,255,0.14)',
+                  color: active ? '#6c63ff' : '#fff',
+                  fontWeight: active ? 800 : 600,
+                  boxShadow: active ? '0 2px 8px rgba(0,0,0,0.18)' : 'none',
+                }}>
+                  {tb.icon} {tb.label}
+                  {tb.id === 'tasks' && pendingTaskCount > 0 && (
+                    <span style={{ marginLeft: 5, background: active ? '#f06292' : '#fff', color: active ? '#fff' : '#f06292', borderRadius: 10, padding: '0 6px', fontSize: 10, fontWeight: 800 }}>{pendingTaskCount}</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 

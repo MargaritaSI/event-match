@@ -11,6 +11,7 @@ interface Zone {
   h: number;
   icon: string;
   dashed?: boolean;
+  vertical?: boolean; // render label rotated 90° (for tall narrow boxes)
 }
 
 // Coordinate system: 440 x 360, matching the photographed floor plan.
@@ -20,7 +21,7 @@ function buildZones(m: Record<string, string>): Zone[] {
   return [
     { id: 'entrance',     lines: [m.entrance],                  color: '#607d8b', x: 175, y: 12,  w: 90,  h: 34,  icon: '🚪' },
     { id: 'working',      lines: [m.workingZone],               color: '#5b8def', x: 24,  y: 62,  w: 130, h: 96,  icon: '💻' },
-    { id: 'registration', lines: [m.registration],             color: '#5b8def', x: 166, y: 62,  w: 70,  h: 150, icon: '📋', dashed: true },
+    { id: 'registration', lines: [m.registration],             color: '#5b8def', x: 166, y: 62,  w: 70,  h: 150, icon: '📋', dashed: true, vertical: true },
     { id: 'webtrack',     lines: splitTrack(m.mainStage),       color: '#e8703a', x: 250, y: 62,  w: 166, h: 130, icon: '🎤' },
     { id: 'wc1',          lines: [m.wc],                        color: '#78909c', x: 24,  y: 168, w: 58,  h: 44,  icon: '🚻' },
     { id: 'wc2',          lines: [m.wc],                        color: '#78909c', x: 92,  y: 168, w: 58,  h: 44,  icon: '🚻' },
@@ -82,23 +83,39 @@ export function VenueMap({ highlight }: { highlight?: string | null }) {
                 strokeWidth={active ? 2.5 : 1.5}
                 strokeDasharray={z.dashed ? '6,4' : undefined}
               />
-              <text x={cx} y={z.y + z.h / 2 - blockH / 2} textAnchor="middle" fontSize={15} dominantBaseline="middle">
-                {z.icon}
-              </text>
-              {z.lines.map((line, i) => (
-                <text
-                  key={i}
-                  x={cx}
-                  y={textY + i * lineH}
-                  textAnchor="middle"
-                  fontSize={fontSize}
-                  fill="#fff"
-                  fontWeight={700}
-                  style={{ textTransform: 'uppercase', letterSpacing: 0.3 }}
-                >
-                  {line}
-                </text>
-              ))}
+              {z.vertical ? (
+                <>
+                  {/* icon near the top, label rotated 90° to fit the tall narrow box */}
+                  <text x={cx} y={z.y + 22} textAnchor="middle" fontSize={15} dominantBaseline="middle">{z.icon}</text>
+                  <text
+                    x={cx} y={z.y + z.h / 2 + 8} textAnchor="middle" fontSize={9} fill="#fff" fontWeight={700}
+                    transform={`rotate(-90 ${cx} ${z.y + z.h / 2 + 8})`}
+                    style={{ textTransform: 'uppercase', letterSpacing: 0.5 }}
+                  >
+                    {z.lines[0]}
+                  </text>
+                </>
+              ) : (
+                <>
+                  <text x={cx} y={z.y + z.h / 2 - blockH / 2} textAnchor="middle" fontSize={15} dominantBaseline="middle">
+                    {z.icon}
+                  </text>
+                  {z.lines.map((line, i) => (
+                    <text
+                      key={i}
+                      x={cx}
+                      y={textY + i * lineH}
+                      textAnchor="middle"
+                      fontSize={fontSize}
+                      fill="#fff"
+                      fontWeight={700}
+                      style={{ textTransform: 'uppercase', letterSpacing: 0.3 }}
+                    >
+                      {line}
+                    </text>
+                  ))}
+                </>
+              )}
             </g>
           );
         })}
