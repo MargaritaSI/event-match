@@ -218,17 +218,21 @@ function AppInner() {
           </div>
         )}
 
-        {/* Per-tab background illustration (only a 10% white veil so the image stays visible) */}
+        {/* Per-tab background illustration — full-bleed (no crop), only a 10% white veil */}
         {TAB_BG[tab] && (
           <div style={{
-            position: 'fixed', inset: 0, top: 96, zIndex: 0, pointerEvents: 'none',
+            position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
             backgroundImage: `linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url(${import.meta.env.BASE_URL}bg/${TAB_BG[tab]})`,
             backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed',
           }} />
         )}
 
-        {/* Page content */}
-        <div className="page-content" style={{ position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto', padding: '0 16px 40px' }}>
+        {/* Page content — sits on a frosted translucent panel so text stays readable on any bg */}
+        <div className="page-content" style={{
+          position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto',
+          background: 'rgba(255,255,255,0.62)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+          padding: '8px 16px 40px', minHeight: 'calc(100vh - 96px)',
+        }}>
           {tab === 'people'      && <PeoplePage mySessionIds={mySessionIds} matchedIds={matchedIds} onMatch={addMatch} onOpenProfile={setProfileUser} />}
           {tab === 'connections' && <ConnectionsPage matchedIds={matchedIds} onOpenProfile={setProfileUser} />}
           {tab === 'schedule'    && <SchedulePage mySessionIds={mySessionIds} onToggleSession={toggleSession} onOpenMap={openMapForLocation} onOpenConnect={() => setTab('connect')} />}
