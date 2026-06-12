@@ -32,21 +32,21 @@ const SEED_REQUESTS: MeetRequest[] = [
 
 type Tab = 'people' | 'connections' | 'schedule' | 'map' | 'groups' | 'connect' | 'capture' | 'tasks' | 'sponsors' | 'organisers' | 'leaderboard' | 'mycard';
 
-// Per-tab: illustration pinned at bottom-center + a fill colour that matches the image
-// background so it blends and "stretches" to fill the rest of the screen. Uses all 7 images.
+// Per-tab: footer illustration + a fill colour. Colour matches the illustration's background
+// so it blends; for the transparent (background-removed) people/refer art the fill is black.
 const TAB_BG: Record<Tab, { img: string; fill: string }> = {
-  people:      { img: 'people.jpg',     fill: '#f3f1f7' }, // black-bg illo → light fill, footer band
-  connections: { img: 'refer.jpg',      fill: '#f5eefb' },
+  people:      { img: 'people.png',     fill: '#0d0d10' }, // transparent art on black
+  connections: { img: 'refer.png',      fill: '#0d0d10' }, // transparent art on black
   schedule:    { img: 'leadership.jpg', fill: '#eae0df' },
   map:         { img: 'ferm.jpg',       fill: '#ffb003' },
   groups:      { img: 'teams.jpg',      fill: '#39a2fe' },
   connect:     { img: 'orange.jpg',     fill: '#ffb003' },
   capture:     { img: 'blue.jpg',       fill: '#39a2fe' },
-  tasks:       { img: 'orange.jpg',     fill: '#ffb003' },
+  tasks:       { img: 'scene.jpg',      fill: '#ffffff' },
   sponsors:    { img: 'teams.jpg',      fill: '#39a2fe' },
   organisers:  { img: 'blue.jpg',       fill: '#39a2fe' },
   leaderboard: { img: 'leadership.jpg', fill: '#eae0df' },
-  mycard:      { img: 'people.jpg',     fill: '#f3f1f7' },
+  mycard:      { img: 'people.png',     fill: '#0d0d10' },
 };
 
 const TABS: { id: Tab; icon: string; label: string }[] = [
@@ -219,14 +219,15 @@ function AppInner() {
           </div>
         )}
 
-        {/* Per-tab background: just the fill colour, which stretches across the whole screen */}
+        {/* Per-tab background: the fill colour, which stretches across the whole screen */}
         <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', backgroundColor: TAB_BG[tab].fill }} />
 
-        {/* Page content — transparent so the fill colour shows around the text */}
-        <div className="page-content" style={{
-          position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto',
-          padding: '8px 16px 0',
-        }}>
+        {/* Page column: white panel behind the text, then the footer illustration on the fill */}
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto', padding: '12px 12px 0' }}>
+          <div className="page-content" style={{
+            background: 'rgba(255,255,255,0.92)', borderRadius: 18,
+            boxShadow: '0 6px 24px rgba(0,0,0,0.10)', padding: '4px 16px 20px',
+          }}>
           {tab === 'people'      && <PeoplePage mySessionIds={mySessionIds} matchedIds={matchedIds} onMatch={addMatch} onOpenProfile={setProfileUser} />}
           {tab === 'connections' && <ConnectionsPage matchedIds={matchedIds} onOpenProfile={setProfileUser} />}
           {tab === 'schedule'    && <SchedulePage mySessionIds={mySessionIds} onToggleSession={toggleSession} onOpenMap={openMapForLocation} onOpenConnect={() => setTab('connect')} />}
@@ -239,12 +240,13 @@ function AppInner() {
           {tab === 'organisers'  && <OrganisersPage myMatches={matchedIds.size} />}
           {tab === 'leaderboard' && <LeaderboardPage />}
           {tab === 'mycard'      && <MyCardPage mySessionIds={mySessionIds} />}
+          </div>
 
-          {/* Footer illustration — sits centered at the bottom on the fill colour */}
+          {/* Footer illustration — bigger, centered at the bottom on the fill colour (outside the white panel) */}
           <img
             src={`${import.meta.env.BASE_URL}bg/${TAB_BG[tab].img}`}
             alt=""
-            style={{ display: 'block', width: 'min(560px, 90%)', margin: '32px auto 0', userSelect: 'none', pointerEvents: 'none' }}
+            style={{ display: 'block', width: 'min(1000px, 96%)', margin: '36px auto 0', userSelect: 'none', pointerEvents: 'none' }}
           />
         </div>
       </div>
