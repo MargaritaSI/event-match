@@ -1,4 +1,4 @@
-# EventMatch 🤝 — *Turn a hallway hello into a real connection*
+# EventMatch 🤝 — *Meaningful Matches for Modern Events*
 
 > **Live demo:** https://margaritasi.github.io/event-match/
 > **Code:** https://github.com/MargaritaSI/event-match

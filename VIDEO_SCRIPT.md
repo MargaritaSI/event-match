@@ -15,7 +15,7 @@ Speak ~10% slower than feels natural. Keep moving — don't linger on any screen
 > We forget most of the people we meet within a day — and networking is the whole reason we go.
 > I built **EventMatch** to fix that."
 
-*(On screen: app logo + tagline "Turn a hallway hello into a real connection.")*
+*(On screen: app logo + tagline "Meaningful Matches for Modern Events.")*
 
 ---
 

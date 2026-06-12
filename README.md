@@ -1,6 +1,6 @@
 # EventMatch 🤝
 
-> **Turn a hallway hello into a real connection.**
+> **Meaningful Matches for Modern Events.**
 > A mobile‑first networking companion for tech conferences & meetups — built with **KendoReact**.
 
 **🌐 Live:** https://margaritasi.github.io/event-match/ · **🎬 Demo video:** _(add link)_
