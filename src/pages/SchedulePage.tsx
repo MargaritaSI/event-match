@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardBody } from '@progress/kendo-react-layout';
+import { Card, CardBody } from '../ui';
 import { SESSIONS, getNowAmsterdam, isSessionNow, isSessionUpcoming } from '../data/schedule';
 import { computeGaps, minutesToLabel, gapSuggestion, locationToZoneId, timeToMinutes } from '../lib/scheduleLogic';
 import { useT } from '../i18n';

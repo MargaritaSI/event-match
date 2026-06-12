@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import '@progress/kendo-theme-default/dist/all.css';
 import './App.css';
 import { PeoplePage } from './pages/PeoplePage';
 import { SchedulePage } from './pages/SchedulePage';
@@ -107,13 +106,14 @@ function AppInner() {
     if (card) setSharedCard(card);
   }, []);
 
-  // Root = header-purple so the top notch / overscroll-up shows purple (not the wallpaper).
-  // body = tab fill so the bottom overscroll never flashes white/black. The full-width app
-  // container paints the fill across the content, so purple only appears in true overscroll.
+  // Paint BOTH the root and body with the tab fill so no strip of a different colour ever
+  // shows at the very bottom (home-indicator area) or during the keyboard transition. The
+  // purple top notch is painted by the sticky header itself (its top safe-area padding).
   useEffect(() => {
-    document.documentElement.style.background = '#6c63ff';
+    const fill = TAB_BG[tab].fill;
+    document.documentElement.style.background = fill;
     document.documentElement.style.overscrollBehavior = 'none';
-    document.body.style.background = TAB_BG[tab].fill;
+    document.body.style.background = fill;
   }, [tab]);
 
   const pendingRequests = requests.filter(r => r.status === 'pending').length;

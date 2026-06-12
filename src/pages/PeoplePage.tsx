@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Button } from '@progress/kendo-react-buttons';
-import { Input } from '@progress/kendo-react-inputs';
+import { Button } from '../ui';
+import { Input } from '../ui';
 import { MOCK_USERS, ICE_BREAKERS, INTEREST_LABELS, INTENT_LABELS, CURRENT_USER, FACETS, EVENT_NAME } from '../data/mockData';
 import { InterestBadge } from '../components/InterestBadge';
 import { Avatar } from '../components/Avatar';

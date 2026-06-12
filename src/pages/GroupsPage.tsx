@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Card, CardBody } from '@progress/kendo-react-layout';
-import { Button } from '@progress/kendo-react-buttons';
-import { Dialog, DialogActionsBar } from '@progress/kendo-react-dialogs';
+import { Card, CardBody } from '../ui';
+import { Button } from '../ui';
+import { Dialog, DialogActionsBar } from '../ui';
 import { GROUPS, CATEGORY_LABELS } from '../data/groups';
 import { MOCK_USERS } from '../data/mockData';
 import { useGamification } from '../lib/gamification';

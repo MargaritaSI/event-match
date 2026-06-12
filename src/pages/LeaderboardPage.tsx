@@ -1,4 +1,4 @@
-import { Card, CardBody } from '@progress/kendo-react-layout';
+import { Card, CardBody } from '../ui';
 import { useGamification } from '../lib/gamification';
 import { ACHIEVEMENTS, POINTS } from '../lib/gamificationLogic';
 import { CURRENT_USER } from '../data/mockData';

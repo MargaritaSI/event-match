@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardBody } from '@progress/kendo-react-layout';
+import { Card, CardBody } from '../ui';
 import { SPONSORS } from '../data/sponsors';
 import { InterestBadge } from '../components/InterestBadge';
 import { useT } from '../i18n';

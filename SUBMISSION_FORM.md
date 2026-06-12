@@ -25,7 +25,7 @@ A mobile‑first (desktop‑responsive) app to meet the right people **fast, in 
 Loop: **discover → connect safely → capture → get reminded → keep in touch.**
 
 ### Implementation
-Mobile‑first, desktop‑responsive SPA in **React + TypeScript + KendoReact**, live on **GitHub Pages**
+Mobile‑first, desktop‑responsive SPA in **React + TypeScript** (UI originally built on **KendoReact**, since migrated to a custom dependency‑free kit), live on **GitHub Pages**
 (Actions CI/CD). Logic sits in pure, unit‑tested TS modules. **No backend by design:** profile/tasks/
 points live in the browser's **`localStorage`**. Person‑to‑person matching works server‑free — your
 card is **base64‑encoded into a share link/QR**; the other person opens it and connects. Sample
@@ -39,7 +39,7 @@ polish (safe‑area header, overscroll edges, exact tints).
 
 ### Accomplishments
 A **real, deployed product** with CI/CD on the first try; a full loop with value for attendees,
-organisers, sponsors and communities; **two‑device matching with zero backend**; **55 passing unit
+organisers, sponsors and communities; **two‑device matching with zero backend**; **58 passing unit
 tests** and a clean branded UI — built with AI as my pair, under real time pressure.
 
 ### Next Steps

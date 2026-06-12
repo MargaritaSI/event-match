@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Card, CardBody } from '@progress/kendo-react-layout';
-import { Button } from '@progress/kendo-react-buttons';
-import { Input } from '@progress/kendo-react-inputs';
-import { Dialog } from '@progress/kendo-react-dialogs';
+import { Card, CardBody } from '../ui';
+import { Button } from '../ui';
+import { Input } from '../ui';
+import { Dialog } from '../ui';
 import { getUserById, userCode } from '../data/mockData';
 import { UserProfileDialog } from '../components/UserProfileDialog';
 import { Avatar } from '../components/Avatar';

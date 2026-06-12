@@ -1,5 +1,5 @@
-import { Dialog } from '@progress/kendo-react-dialogs';
-import { Button } from '@progress/kendo-react-buttons';
+import { Dialog } from '../ui';
+import { Button } from '../ui';
 import { Avatar } from './Avatar';
 import { InterestBadge } from './InterestBadge';
 import { userCode } from '../data/mockData';

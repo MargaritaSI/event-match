@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Button } from '@progress/kendo-react-buttons';
-import { Input, TextArea } from '@progress/kendo-react-inputs';
-import { Card, CardBody } from '@progress/kendo-react-layout';
+import { Button } from '../ui';
+import { Input, TextArea } from '../ui';
+import { Card, CardBody } from '../ui';
 import type { Contact, Task, User } from '../types';
 import { buildTaskFromCapture, followUpDate, canSaveCapture } from '../lib/captureLogic';
 import { findUsers, userCode } from '../data/mockData';

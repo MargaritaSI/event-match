@@ -1,4 +1,4 @@
-import { Card, CardBody } from '@progress/kendo-react-layout';
+import { Card, CardBody } from '../ui';
 import { VenueMap } from '../components/VenueMap';
 import { SESSIONS, getNowAmsterdam, isSessionNow } from '../data/schedule';
 import { useT } from '../i18n';

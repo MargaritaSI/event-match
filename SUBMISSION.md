@@ -2,8 +2,12 @@
 
 > **Live demo:** https://margaritasi.github.io/event-match/
 > **Code:** https://github.com/MargaritaSI/event-match
-> **Built with:** KendoReact (Progress Telerik UI)
+> **Built with:** KendoReact (Progress Telerik UI) for the hackathon build
 > **Track:** *Improve how events are created or experienced*
+>
+> _Note: the hackathon submission was built with KendoReact. The live build has since been migrated
+> to a custom, dependency‑free UI kit (`src/ui/`) to drop the licensed dependency; everything below
+> describes the architecture, which is otherwise unchanged._
 
 ---
 
@@ -105,16 +109,17 @@ Everything works **client‑side** so the demo is instant and the live site is r
    GitHub Actions ──build──▶ GitHub Pages (live URL)
 ```
 
-- **Front end:** React + TypeScript, **KendoReact** component library + Kendo Default theme (the
-  challenge's Kendo UI requirement — Cards, Dialogs, Buttons, Inputs, Layout, Indicators are used
-  throughout).
+- **Front end:** React + TypeScript. The hackathon build used the **KendoReact** component library +
+  Kendo Default theme (the challenge's Kendo UI requirement — Cards, Dialogs, Buttons, Inputs, Layout,
+  Indicators). The live build has since been migrated to a custom, dependency‑free UI kit in `src/ui/`
+  with the same component API, dropping the licensed dependency.
 - **Domain logic:** isolated pure‑TypeScript modules in `src/lib/` (matching, scheduling, capture,
   gamification) — framework‑free, so they port 1:1 to a future native (Flutter/Swift) app.
 - **Persistence:** `localStorage` keyed under `em_*` (profile, points, tasks). A one‑tap "Delete all
   my data" wipes it.
 - **No backend (by design):** real attendee‑to‑attendee matching is done via a **base64‑encoded card
   in the URL hash** (QR / share link) — two judges can match across two devices with no server.
-- **Tests:** **55 unit tests** (Vitest) covering matching, affinity, schedule gaps, gamification and
+- **Tests:** **58 unit tests** (Vitest) covering matching, affinity, schedule gaps, gamification and
   capture logic.
 - **CI/CD:** GitHub Actions builds and deploys to **GitHub Pages** on every push to `main`.
 
@@ -201,7 +206,7 @@ A few things I'm proud of under the hood:
 - A **complete networking loop** — discover, match, capture, follow‑up reminder, keep‑in‑touch — plus
   value for **organisers, sponsors, speakers and communities**, in one app.
 - **Real two‑device matching with zero backend** via the share‑link flow.
-- **55 passing unit tests** for the core logic — rare for a hackathon front‑end.
+- **58 passing unit tests** for the core logic — rare for a hackathon front‑end.
 - A polished, mobile‑first KendoReact UI with consistent branding.
 
 ---
@@ -240,8 +245,9 @@ backend for cross‑device realtime; that's the main future cost line to watch.
 - **Is there a backend?** No — by design. Profiles live in `localStorage`; cross‑person matching uses a
   share link / QR that encodes the card in the URL. Great for a private, instant demo; a backend is
   the first "next step" for scale.
-- **Does it use Kendo UI?** Yes — KendoReact components (Cards, Dialogs, Buttons, Inputs, Layout,
-  Indicators) and the Kendo theme are used across the app.
+- **Does it use Kendo UI?** The hackathon build was built with KendoReact (Cards, Dialogs, Buttons,
+  Inputs, Layout, Indicators) + the Kendo theme. The live build has since been migrated to a custom,
+  dependency‑free UI kit (`src/ui/`) with the same component API.
 - **Will two judges actually match?** Yes — one opens *My Card → Share link*, sends it; the other opens
   it and taps **Connect**, and contacts unlock.
 - **Is my data safe?** It never leaves your device, and **Delete all my data** wipes it instantly.
@@ -258,7 +264,7 @@ backend for cross‑device realtime; that's the main future cost line to watch.
 ## 13. Submission Category
 **"Improve how events are created or experienced."** EventMatch targets the *attendee experience*
 first (discovery → connection → follow‑up) while delivering clear value to **organisers, sponsors and
-communities** — and it's built with **KendoReact**, satisfying the Kendo UI requirement.
+communities** — and the hackathon build was made with **KendoReact**, satisfying the Kendo UI requirement.
 
 > **Pre‑submit checklist:** verify every link opens · confirm the stats/source links · category set to
 > the single best‑fit track · video under the length limit · live URL loads.

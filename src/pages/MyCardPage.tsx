@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Card, CardBody } from '@progress/kendo-react-layout';
-import { Button } from '@progress/kendo-react-buttons';
-import { Input, TextArea } from '@progress/kendo-react-inputs';
+import { Card, CardBody } from '../ui';
+import { Button } from '../ui';
+import { Input, TextArea } from '../ui';
 import { InterestBadge } from '../components/InterestBadge';
 import { INTEREST_LABELS, INTENT_LABELS } from '../data/mockData';
 import { useGamification } from '../lib/gamification';

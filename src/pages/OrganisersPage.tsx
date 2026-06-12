@@ -1,4 +1,4 @@
-import { Card, CardBody } from '@progress/kendo-react-layout';
+import { Card, CardBody } from '../ui';
 import { MOCK_USERS, INTEREST_LABELS } from '../data/mockData';
 import { GROUPS } from '../data/groups';
 import { SESSIONS } from '../data/schedule';

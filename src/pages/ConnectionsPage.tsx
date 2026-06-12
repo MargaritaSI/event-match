@@ -1,5 +1,5 @@
-import { Card, CardBody } from '@progress/kendo-react-layout';
-import { Button } from '@progress/kendo-react-buttons';
+import { Card, CardBody } from '../ui';
+import { Button } from '../ui';
 import { Avatar } from '../components/Avatar';
 import { InterestBadge } from '../components/InterestBadge';
 import { getUserById, userCode, CURRENT_USER } from '../data/mockData';

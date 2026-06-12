@@ -20,7 +20,7 @@ Speak ~10% slower than feels natural. Keep moving — don't linger on any screen
 ---
 
 ### 0:25 – 0:35 · What it is
-> "EventMatch is a mobile networking companion for tech events, built with **KendoReact**. It's three
+> "EventMatch is a mobile networking companion for tech events. It's three
 > things — **Me**, **Meet**, and **Event** — and it closes the whole networking loop."
 
 *(Show the header with the three groups; it's already live and deployed.)*
@@ -77,7 +77,7 @@ Dashboard → the bars and zone heatmap.)*
 ---
 
 ### 2:20 – 2:30 · Close
-> "It's live, deployed, mobile‑first, fully built in KendoReact, and backed by 55 unit tests.
+> "It's live, deployed, mobile‑first, and backed by 58 unit tests.
 > Try it yourself at **margaritasi.github.io/event‑match**. Thanks for watching!"
 
 *(End card: live URL + GitHub link.)*

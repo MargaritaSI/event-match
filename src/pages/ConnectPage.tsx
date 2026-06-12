@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Card, CardBody } from '@progress/kendo-react-layout';
-import { Button } from '@progress/kendo-react-buttons';
+import { Card, CardBody } from '../ui';
+import { Button } from '../ui';
 import { ICE_BREAKERS, MOCK_USERS, CURRENT_USER, INTEREST_LABELS } from '../data/mockData';
 import { SESSIONS, getNowAmsterdam, isSessionUpcoming } from '../data/schedule';
 import { commonInterests } from '../lib/peopleLogic';

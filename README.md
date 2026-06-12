@@ -1,7 +1,8 @@
 # EventMatch 🤝
 
 > **Meaningful Matches for Modern Events.**
-> A mobile‑first networking companion for tech conferences & meetups — built with **KendoReact**.
+> A mobile‑first networking companion for tech conferences & meetups — built with **KendoReact**
+> for the hackathon, since migrated to a custom, dependency‑free UI kit.
 
 **🌐 Live:** https://margaritasi.github.io/event-match/ · **🎬 Demo video:** _(add link)_
 
@@ -35,17 +36,18 @@ one app, organised into **Me · Meet · Event**:
 
 ## Tech stack
 - **React 19 + TypeScript + Vite**
-- **KendoReact** UI components + Kendo Default theme (the Kendo UI requirement)
+- Custom, dependency‑free UI kit in `src/ui/` (Buttons · Inputs · Cards · Dialogs) — the app was
+  **originally built on KendoReact** for the Kendo UI challenge, then migrated off the dependency
 - `qrcode.react`, `localStorage` persistence (no backend by design)
 - Pure‑TypeScript domain logic in `src/lib/` (matching · intent · capture · schedule · gamification)
-- **55 unit tests** (Vitest)
+- **58 unit tests** (Vitest)
 - **CI/CD:** GitHub Actions → GitHub Pages
 
 ## Run locally
 ```bash
 npm install
 npm run dev      # http://localhost:5174
-npm test         # 55 unit tests
+npm test         # 58 unit tests
 npm run build    # production build → dist/
 ```
 
@@ -61,4 +63,4 @@ The complete write‑up (problem, idea, deep‑dive, challenges, monetization, n
 - 💻 Code — https://github.com/MargaritaSI/event-match
 - 🎬 Video — _(add link)_
 
-_Built solo with KendoReact for the “improve how events are created or experienced” challenge._
+_Built solo with KendoReact (live build since migrated to a custom UI kit) for the “improve how events are created or experienced” challenge._

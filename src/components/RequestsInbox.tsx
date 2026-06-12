@@ -1,5 +1,5 @@
 import { Avatar } from './Avatar';
-import { Button } from '@progress/kendo-react-buttons';
+import { Button } from '../ui';
 import { getUserById, userCode } from '../data/mockData';
 import type { User } from '../types';
 
