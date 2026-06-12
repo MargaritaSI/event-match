@@ -34,9 +34,10 @@ type Tab = 'people' | 'connections' | 'schedule' | 'map' | 'groups' | 'connect' 
 
 // Per-tab: footer illustration + a fill colour. Colour matches the illustration's background
 // so it blends; for the transparent (background-removed) people/refer art the fill is black.
+const BG_V = 2; // bump to cache-bust footer illustrations when the files change
 const TAB_BG: Record<Tab, { img: string; fill: string }> = {
-  people:      { img: 'people.png',     fill: '#f1eefb' }, // transparent art → light fill
-  connections: { img: 'refer.png',      fill: '#fdeef4' }, // transparent art → light fill
+  people:      { img: 'people.png',     fill: '#ffffff' }, // transparent art on white
+  connections: { img: 'refer.png',      fill: '#ffffff' }, // art has white areas → white fill
   schedule:    { img: 'leadership.jpg', fill: '#eae0df' },
   map:         { img: 'ferm.jpg',       fill: '#ffb003' },
   groups:      { img: 'teams.jpg',      fill: '#39a2fe' },
@@ -46,7 +47,7 @@ const TAB_BG: Record<Tab, { img: string; fill: string }> = {
   sponsors:    { img: 'teams.jpg',      fill: '#39a2fe' },
   organisers:  { img: 'blue.jpg',       fill: '#39a2fe' },
   leaderboard: { img: 'leadership.jpg', fill: '#eae0df' },
-  mycard:      { img: 'people.png',     fill: '#f1eefb' },
+  mycard:      { img: 'people.png',     fill: '#ffffff' },
 };
 
 const TAB_META: Record<Tab, { icon: string; label: string }> = {
@@ -288,7 +289,7 @@ function AppInner() {
 
           {/* Footer illustration — bigger, centered at the bottom on the fill colour (outside the white panel) */}
           <img
-            src={`${import.meta.env.BASE_URL}bg/${TAB_BG[tab].img}`}
+            src={`${import.meta.env.BASE_URL}bg/${TAB_BG[tab].img}?v=${BG_V}`}
             alt=""
             style={{ display: 'block', width: 'min(1000px, 96%)', margin: '36px auto 0', userSelect: 'none', pointerEvents: 'none' }}
           />
