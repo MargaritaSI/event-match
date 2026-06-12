@@ -7,7 +7,6 @@ import { Avatar } from '../components/Avatar';
 import { filterAndSort, commonInterests, topInterests } from '../lib/peopleLogic';
 import type { SortMode, PeopleFilter } from '../lib/peopleLogic';
 import { intentSynergies } from '../lib/intentLogic';
-import { useGamification } from '../lib/gamification';
 import { useT } from '../i18n';
 import type { User, Interest } from '../types';
 
@@ -18,13 +17,15 @@ const FILTER_INTERESTS: Interest[] = topInterests(MOCK_USERS).map(x => x.interes
 
 interface Props {
   mySessionIds: Set<string>;
+  matchedIds: Set<string>;
+  onMatch: (userId: string) => void;
+  onOpenProfile: (u: User) => void;
 }
 
-export function PeoplePage({ mySessionIds: _mySessionIds }: Props) {
+export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile }: Props) {
   const { t } = useT();
-  const { award } = useGamification();
+  const matched = matchedIds;
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [matched, setMatched] = useState<Set<string>>(new Set());
   const [pendingSent, setPendingSent] = useState<Set<string>>(new Set());
   const [matchDialog, setMatchDialog] = useState<User | null>(null);
   const [search, setSearch] = useState('');
@@ -42,13 +43,12 @@ export function PeoplePage({ mySessionIds: _mySessionIds }: Props) {
   }
 
   function handleConnect(user: User) {
-    if (matched.has(user.id)) return;
+    if (matched.has(user.id) || pendingSent.has(user.id)) return;
     setPendingSent(prev => new Set(prev).add(user.id));
     setTimeout(() => {
-      setMatched(prev => new Set(prev).add(user.id));
+      onMatch(user.id); // central registry awards points + adds to Connections
       setPendingSent(prev => { const s = new Set(prev); s.delete(user.id); return s; });
       setMatchDialog(user);
-      award('match');
     }, 1000);
   }
 

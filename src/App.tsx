@@ -12,6 +12,7 @@ import { ConnectPage } from './pages/ConnectPage';
 import { MyCardPage } from './pages/MyCardPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { OrganisersPage } from './pages/OrganisersPage';
+import { ConnectionsPage } from './pages/ConnectionsPage';
 import { RequestsInbox } from './components/RequestsInbox';
 import type { MeetRequest } from './components/RequestsInbox';
 import { UserProfileDialog } from './components/UserProfileDialog';
@@ -29,11 +30,12 @@ const SEED_REQUESTS: MeetRequest[] = [
   { userId: '13', status: 'pending', note: "Want to feature your project in a talk!" },
 ];
 
-type Tab = 'people' | 'schedule' | 'map' | 'groups' | 'connect' | 'capture' | 'tasks' | 'sponsors' | 'organisers' | 'leaderboard' | 'mycard';
+type Tab = 'people' | 'connections' | 'schedule' | 'map' | 'groups' | 'connect' | 'capture' | 'tasks' | 'sponsors' | 'organisers' | 'leaderboard' | 'mycard';
 
 // Background illustration per tab (files in public/bg). Every tab gets one (images reused).
 const TAB_BG: Record<Tab, string> = {
   people: 'people.jpg',
+  connections: 'connect.jpg',
   groups: 'groups.jpg',
   connect: 'connect.jpg',
   leaderboard: 'leaderboard.jpg',
@@ -48,6 +50,7 @@ const TAB_BG: Record<Tab, string> = {
 
 const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'people',      icon: '👥', label: 'People' },
+  { id: 'connections', icon: '🤝', label: 'Connections' },
   { id: 'schedule',    icon: '📅', label: 'Schedule' },
   { id: 'map',         icon: '🗺', label: 'Map' },
   { id: 'groups',      icon: '🏘', label: 'Groups' },
@@ -80,6 +83,14 @@ function AppInner() {
   const [requests, setRequests] = useState<MeetRequest[]>(SEED_REQUESTS);
   const [inboxOpen, setInboxOpen] = useState(false);
   const [sharedCard, setSharedCard] = useState<SharedCard | null>(null);
+  const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
+
+  // Central match registry — used by People, the requests inbox and the Connections tab.
+  function addMatch(userId: string) {
+    if (matchedIds.has(userId)) return;
+    setMatchedIds(prev => new Set(prev).add(userId));
+    game.award('match');
+  }
 
   // If opened via a shared link (#card=...), show that person's card.
   useEffect(() => {
@@ -91,7 +102,7 @@ function AppInner() {
 
   function acceptRequest(userId: string) {
     setRequests(prev => prev.map(r => r.userId === userId ? { ...r, status: 'accepted' } : r));
-    game.award('match');
+    addMatch(userId); // awards points + registers the connection
   }
   function declineRequest(userId: string) {
     setRequests(prev => prev.map(r => r.userId === userId ? { ...r, status: 'declined' } : r));
@@ -218,7 +229,8 @@ function AppInner() {
 
         {/* Page content */}
         <div className="page-content" style={{ position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto', padding: '0 16px 40px' }}>
-          {tab === 'people'      && <PeoplePage mySessionIds={mySessionIds} />}
+          {tab === 'people'      && <PeoplePage mySessionIds={mySessionIds} matchedIds={matchedIds} onMatch={addMatch} onOpenProfile={setProfileUser} />}
+          {tab === 'connections' && <ConnectionsPage matchedIds={matchedIds} onOpenProfile={setProfileUser} />}
           {tab === 'schedule'    && <SchedulePage mySessionIds={mySessionIds} onToggleSession={toggleSession} onOpenMap={openMapForLocation} onOpenConnect={() => setTab('connect')} />}
           {tab === 'map'         && <MapPage highlight={mapHighlight} />}
           {tab === 'groups'      && <GroupsPage />}
@@ -226,7 +238,7 @@ function AppInner() {
           {tab === 'capture'     && <QuickCapturePage onAddTask={addTask} />}
           {tab === 'tasks'       && <TasksPage tasks={tasks} onToggleDone={toggleTaskDone} onDelete={deleteTask} userEmail={userEmail} setUserEmail={setUserEmail} />}
           {tab === 'sponsors'    && <SponsorsPage onOpenMap={openMapForLocation} />}
-          {tab === 'organisers'  && <OrganisersPage />}
+          {tab === 'organisers'  && <OrganisersPage myMatches={matchedIds.size} />}
           {tab === 'leaderboard' && <LeaderboardPage />}
           {tab === 'mycard'      && <MyCardPage mySessionIds={mySessionIds} />}
         </div>

@@ -32,10 +32,11 @@ export function SponsorsPage({ onOpenMap }: { onOpenMap: (location: string) => v
 
       {/* How it works */}
       <div style={{ background: '#f0eeff', borderRadius: 12, padding: '12px 14px', marginBottom: 20 }}>
-        <div style={{ fontWeight: 700, fontSize: 13, color: '#6c63ff', marginBottom: 4 }}>🤝 How to connect with sponsors</div>
+        <div style={{ fontWeight: 700, fontSize: 13, color: '#6c63ff', marginBottom: 4 }}>🤝 How sponsors & you connect</div>
         <div style={{ fontSize: 12.5, color: '#555', lineHeight: 1.5 }}>
-          Reps are at their <strong>booth</strong> during breaks. Tap a booth to find it on the map, go say hi,
-          ask about roles, or grab swag. Recommended ones match your interests.
+          Reps are at their <strong>booth</strong> during breaks — tap a booth to find it on the map.
+          Tap <strong>📲 Share my badge</strong> to send the sponsor your contact (a “lead”) so they can follow up about roles, swag or demos.
+          The <strong>📇 leads · 👁 views</strong> line is the sponsor’s ROI dashboard.
         </div>
       </div>
 
@@ -105,12 +106,13 @@ function SponsorCard({ sponsor: s, t, highlighted, onOpenMap, leadDropped, onDro
               <button
                 onClick={onDropBadge}
                 disabled={leadDropped}
+                title={leadDropped ? 'They now have your contact' : 'Share your contact with this sponsor'}
                 style={{
                   fontSize: 12, borderRadius: 8, padding: '5px 11px', border: 'none', cursor: leadDropped ? 'default' : 'pointer', fontWeight: 600,
                   background: leadDropped ? '#e8f5e9' : '#6c63ff', color: leadDropped ? '#2e7d32' : '#fff',
                 }}
               >
-                {leadDropped ? '✓ Badge shared' : '📲 Scan / drop badge'}
+                {leadDropped ? '✓ Shared — they have your contact' : '📲 Share my badge'}
               </button>
             </div>
           </div>
