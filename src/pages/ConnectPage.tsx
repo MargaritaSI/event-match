@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Card, CardBody } from '@progress/kendo-react-layout';
 import { Button } from '@progress/kendo-react-buttons';
-import { ICE_BREAKERS, MOCK_USERS } from '../data/mockData';
+import { ICE_BREAKERS, MOCK_USERS, CURRENT_USER, INTEREST_LABELS } from '../data/mockData';
 import { SESSIONS, getNowAmsterdam, isSessionUpcoming } from '../data/schedule';
+import { commonInterests } from '../lib/peopleLogic';
 import { useGamification } from '../lib/gamification';
 
 const ALL_ICEBREAKERS = Object.values(ICE_BREAKERS).flat();
+const MY_INTERESTS = CURRENT_USER.interests;
 
 const TOPICS = [
   { id: 't1', title: 'Side projects & weekend hacks', icon: '🛠', participants: 4, place: 'Coffee Point', time: 'Next break' },
@@ -73,8 +75,13 @@ export function ConnectPage() {
   function handleFindMatch(system: string) {
     setChosenSystem(system);
     setTimeout(() => {
-      const randomUser = MOCK_USERS[Math.floor(Math.random() * MOCK_USERS.length)];
-      setMatchedUser(randomUser);
+      // 'interest' → match someone who shares at least one of my interests; others → anyone.
+      const pool = system === 'interest'
+        ? MOCK_USERS.filter(u => commonInterests(u, MY_INTERESTS).length > 0)
+        : MOCK_USERS;
+      const list = pool.length > 0 ? pool : MOCK_USERS;
+      const picked = list[Math.floor(Math.random() * list.length)];
+      setMatchedUser(picked);
       award('coffee_meetup');
     }, 1200);
   }
@@ -157,9 +164,15 @@ export function ConnectPage() {
                 </div>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 16 }}>{matchedUser.name}</div>
-                  <div style={{ fontSize: 13, color: '#555' }}>{matchedUser.bio}</div>
+                  <div style={{ fontSize: 13, color: '#555' }}>{matchedUser.role}{matchedUser.company ? ` · ${matchedUser.company}` : ''}</div>
                 </div>
               </div>
+              {commonInterests(matchedUser, MY_INTERESTS).length > 0 && (
+                <div style={{ background: '#f0eeff', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12.5 }}>
+                  <strong style={{ color: '#6c63ff' }}>✨ You both like:</strong>{' '}
+                  {commonInterests(matchedUser, MY_INTERESTS).map(i => INTEREST_LABELS[i] || i).join(', ')}
+                </div>
+              )}
               <div style={{ background: '#fff', borderRadius: 10, padding: '10px 12px', marginBottom: 12, fontSize: 13 }}>
                 <strong>Where to meet:</strong> ☕ Coffee Point<br />
                 <strong>When:</strong> {nb ? `Before ${nb.before} (${nb.time})` : 'Next break'}

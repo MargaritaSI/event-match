@@ -31,13 +31,19 @@ const SEED_REQUESTS: MeetRequest[] = [
 
 type Tab = 'people' | 'schedule' | 'map' | 'groups' | 'connect' | 'capture' | 'tasks' | 'sponsors' | 'organisers' | 'leaderboard' | 'mycard';
 
-// Background illustration per tab (files in public/bg). Shown faintly behind a white veil.
-const TAB_BG: Partial<Record<Tab, string>> = {
+// Background illustration per tab (files in public/bg). Every tab gets one (images reused).
+const TAB_BG: Record<Tab, string> = {
   people: 'people.jpg',
   groups: 'groups.jpg',
   connect: 'connect.jpg',
   leaderboard: 'leaderboard.jpg',
   map: 'map.jpg',
+  organisers: 'organisers.jpg',
+  schedule: 'leaderboard.jpg',
+  capture: 'connect.jpg',
+  tasks: 'organisers.jpg',
+  sponsors: 'groups.jpg',
+  mycard: 'people.jpg',
 };
 
 const TABS: { id: Tab; icon: string; label: string }[] = [
@@ -201,17 +207,17 @@ function AppInner() {
           </div>
         )}
 
-        {/* Per-tab background illustration (subtle, behind a white veil) */}
+        {/* Per-tab background illustration (only a 10% white veil so the image stays visible) */}
         {TAB_BG[tab] && (
           <div style={{
             position: 'fixed', inset: 0, top: 96, zIndex: 0, pointerEvents: 'none',
-            backgroundImage: `linear-gradient(rgba(250,250,250,0.92), rgba(250,250,250,0.97)), url(${import.meta.env.BASE_URL}bg/${TAB_BG[tab]})`,
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url(${import.meta.env.BASE_URL}bg/${TAB_BG[tab]})`,
             backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed',
           }} />
         )}
 
         {/* Page content */}
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto', padding: '0 16px 40px' }}>
+        <div className="page-content" style={{ position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto', padding: '0 16px 40px' }}>
           {tab === 'people'      && <PeoplePage mySessionIds={mySessionIds} />}
           {tab === 'schedule'    && <SchedulePage mySessionIds={mySessionIds} onToggleSession={toggleSession} onOpenMap={openMapForLocation} onOpenConnect={() => setTab('connect')} />}
           {tab === 'map'         && <MapPage highlight={mapHighlight} />}
