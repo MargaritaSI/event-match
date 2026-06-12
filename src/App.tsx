@@ -32,20 +32,21 @@ const SEED_REQUESTS: MeetRequest[] = [
 
 type Tab = 'people' | 'connections' | 'schedule' | 'map' | 'groups' | 'connect' | 'capture' | 'tasks' | 'sponsors' | 'organisers' | 'leaderboard' | 'mycard';
 
-// Background illustration per tab (files in public/bg). Every tab gets one (images reused).
-const TAB_BG: Record<Tab, string> = {
-  people: 'people.jpg',
-  connections: 'connect.jpg',
-  groups: 'groups.jpg',
-  connect: 'connect.jpg',
-  leaderboard: 'leaderboard.jpg',
-  map: 'map.jpg',
-  organisers: 'organisers.jpg',
-  schedule: 'leaderboard.jpg',
-  capture: 'connect.jpg',
-  tasks: 'organisers.jpg',
-  sponsors: 'groups.jpg',
-  mycard: 'people.jpg',
+// Per-tab: illustration pinned at bottom-center + a fill colour that matches the image
+// background so it blends and "stretches" to fill the rest of the screen. Uses all 7 images.
+const TAB_BG: Record<Tab, { img: string; fill: string }> = {
+  people:      { img: 'people.jpg',     fill: '#f3f1f7' }, // black-bg illo → light fill, footer band
+  connections: { img: 'refer.jpg',      fill: '#f5eefb' },
+  schedule:    { img: 'leadership.jpg', fill: '#eae0df' },
+  map:         { img: 'ferm.jpg',       fill: '#ffb003' },
+  groups:      { img: 'teams.jpg',      fill: '#39a2fe' },
+  connect:     { img: 'orange.jpg',     fill: '#ffb003' },
+  capture:     { img: 'blue.jpg',       fill: '#39a2fe' },
+  tasks:       { img: 'orange.jpg',     fill: '#ffb003' },
+  sponsors:    { img: 'teams.jpg',      fill: '#39a2fe' },
+  organisers:  { img: 'blue.jpg',       fill: '#39a2fe' },
+  leaderboard: { img: 'leadership.jpg', fill: '#eae0df' },
+  mycard:      { img: 'people.jpg',     fill: '#f3f1f7' },
 };
 
 const TABS: { id: Tab; icon: string; label: string }[] = [
@@ -218,20 +219,13 @@ function AppInner() {
           </div>
         )}
 
-        {/* Per-tab background illustration — full-bleed (no crop), only a 10% white veil */}
-        {TAB_BG[tab] && (
-          <div style={{
-            position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url(${import.meta.env.BASE_URL}bg/${TAB_BG[tab]})`,
-            backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed',
-          }} />
-        )}
+        {/* Per-tab background: just the fill colour, which stretches across the whole screen */}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', backgroundColor: TAB_BG[tab].fill }} />
 
-        {/* Page content — sits on a frosted translucent panel so text stays readable on any bg */}
+        {/* Page content — transparent so the fill colour shows around the text */}
         <div className="page-content" style={{
           position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto',
-          background: 'rgba(255,255,255,0.62)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
-          padding: '8px 16px 40px', minHeight: 'calc(100vh - 96px)',
+          padding: '8px 16px 0',
         }}>
           {tab === 'people'      && <PeoplePage mySessionIds={mySessionIds} matchedIds={matchedIds} onMatch={addMatch} onOpenProfile={setProfileUser} />}
           {tab === 'connections' && <ConnectionsPage matchedIds={matchedIds} onOpenProfile={setProfileUser} />}
@@ -245,6 +239,13 @@ function AppInner() {
           {tab === 'organisers'  && <OrganisersPage myMatches={matchedIds.size} />}
           {tab === 'leaderboard' && <LeaderboardPage />}
           {tab === 'mycard'      && <MyCardPage mySessionIds={mySessionIds} />}
+
+          {/* Footer illustration — sits centered at the bottom on the fill colour */}
+          <img
+            src={`${import.meta.env.BASE_URL}bg/${TAB_BG[tab].img}`}
+            alt=""
+            style={{ display: 'block', width: 'min(560px, 90%)', margin: '32px auto 0', userSelect: 'none', pointerEvents: 'none' }}
+          />
         </div>
       </div>
     </I18nContext.Provider>
