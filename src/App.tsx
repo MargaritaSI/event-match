@@ -35,8 +35,8 @@ type Tab = 'people' | 'connections' | 'schedule' | 'map' | 'groups' | 'connect' 
 // Per-tab: footer illustration + a fill colour. Colour matches the illustration's background
 // so it blends; for the transparent (background-removed) people/refer art the fill is black.
 const TAB_BG: Record<Tab, { img: string; fill: string }> = {
-  people:      { img: 'people.png',     fill: '#0d0d10' }, // transparent art on black
-  connections: { img: 'refer.png',      fill: '#0d0d10' }, // transparent art on black
+  people:      { img: 'people.png',     fill: '#f1eefb' }, // transparent art → light fill
+  connections: { img: 'refer.png',      fill: '#fdeef4' }, // transparent art → light fill
   schedule:    { img: 'leadership.jpg', fill: '#eae0df' },
   map:         { img: 'ferm.jpg',       fill: '#ffb003' },
   groups:      { img: 'teams.jpg',      fill: '#39a2fe' },
@@ -46,22 +46,29 @@ const TAB_BG: Record<Tab, { img: string; fill: string }> = {
   sponsors:    { img: 'teams.jpg',      fill: '#39a2fe' },
   organisers:  { img: 'blue.jpg',       fill: '#39a2fe' },
   leaderboard: { img: 'leadership.jpg', fill: '#eae0df' },
-  mycard:      { img: 'people.png',     fill: '#0d0d10' },
+  mycard:      { img: 'people.png',     fill: '#f1eefb' },
 };
 
-const TABS: { id: Tab; icon: string; label: string }[] = [
-  { id: 'people',      icon: '👥', label: 'People' },
-  { id: 'connections', icon: '🤝', label: 'Connections' },
-  { id: 'schedule',    icon: '📅', label: 'Schedule' },
-  { id: 'map',         icon: '🗺', label: 'Map' },
-  { id: 'groups',      icon: '🏘', label: 'Groups' },
-  { id: 'connect',     icon: '☕', label: 'Connect' },
-  { id: 'capture',     icon: '⚡', label: 'Quick Capture' },
-  { id: 'tasks',       icon: '📋', label: 'Tasks' },
-  { id: 'sponsors',    icon: '🏢', label: 'Sponsors' },
-  { id: 'organisers',  icon: '📊', label: 'Organisers' },
-  { id: 'leaderboard', icon: '🏆', label: 'Leaderboard' },
-  { id: 'mycard',      icon: '🪪', label: 'My Card' },
+const TAB_META: Record<Tab, { icon: string; label: string }> = {
+  people:      { icon: '👥', label: 'People' },
+  connections: { icon: '🤝', label: 'Connections' },
+  schedule:    { icon: '📅', label: 'Schedule' },
+  map:         { icon: '🗺', label: 'Map' },
+  groups:      { icon: '🏘', label: 'Groups' },
+  connect:     { icon: '☕', label: 'Connect' },
+  capture:     { icon: '⚡', label: 'Quick Capture' },
+  tasks:       { icon: '📋', label: 'Tasks' },
+  sponsors:    { icon: '🏢', label: 'Sponsors' },
+  organisers:  { icon: '📊', label: 'Organisers' },
+  leaderboard: { icon: '🏆', label: 'Leaderboard' },
+  mycard:      { icon: '🪪', label: 'My Card' },
+};
+
+// Two-level nav: a few logical groups in the header, each opening to thematic sub-tabs.
+const NAV_GROUPS: { id: string; icon: string; label: string; tabs: Tab[] }[] = [
+  { id: 'meet',  icon: '🧑‍🤝‍🧑', label: 'Meet',  tabs: ['people', 'connections', 'groups', 'connect'] },
+  { id: 'event', icon: '📅',     label: 'Event', tabs: ['schedule', 'map', 'sponsors', 'organisers'] },
+  { id: 'me',    icon: '🎒',     label: 'Me',    tabs: ['capture', 'tasks', 'mycard', 'leaderboard'] },
 ];
 
 export default function App() {
@@ -144,6 +151,7 @@ function AppInner() {
   }
 
   const pendingTaskCount = tasks.filter(t => !t.done).length;
+  const currentGroup = NAV_GROUPS.find(g => g.tabs.includes(tab)) || NAV_GROUPS[0];
 
   return (
     <I18nContext.Provider value={i18n}>
@@ -175,21 +183,46 @@ function AppInner() {
             </button>
           </div>
 
-          {/* Scrollable tab ribbon — active tab gets a clear white pill so it's obvious */}
-          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', gap: 6, overflowX: 'auto', marginTop: 10, padding: '0 0 8px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
-            {TABS.map(tb => {
-              const active = tab === tb.id;
+          {/* Level 1 — logical groups (few, clear) */}
+          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', gap: 8, marginTop: 10 }}>
+            {NAV_GROUPS.map(g => {
+              const active = g.id === currentGroup.id;
+              const groupHasTasks = g.tabs.includes('tasks') && pendingTaskCount > 0;
               return (
-                <button key={tb.id} onClick={() => setTab(tb.id)} style={{
-                  position: 'relative', flexShrink: 0, padding: '7px 13px', border: 'none', cursor: 'pointer',
-                  borderRadius: 18, fontSize: 13, whiteSpace: 'nowrap',
+                <button key={g.id} onClick={() => setTab(g.tabs[0])} style={{
+                  position: 'relative', flex: 1, padding: '8px 6px', border: 'none', cursor: 'pointer',
+                  borderRadius: 16, fontSize: 14, whiteSpace: 'nowrap',
                   background: active ? '#fff' : 'rgba(255,255,255,0.14)',
                   color: active ? '#6c63ff' : '#fff',
                   fontWeight: active ? 800 : 600,
                   boxShadow: active ? '0 2px 8px rgba(0,0,0,0.18)' : 'none',
                 }}>
-                  {tb.icon} {tb.label}
-                  {tb.id === 'tasks' && pendingTaskCount > 0 && (
+                  {g.icon} {g.label}
+                  {groupHasTasks && !active && (
+                    <span style={{ position: 'absolute', top: 4, right: 8, background: '#ff1744', color: '#fff', borderRadius: 10, padding: '0 5px', fontSize: 9, fontWeight: 800 }}>{pendingTaskCount}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Level 2 — thematic sub-tabs within the active group */}
+          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', gap: 4, overflowX: 'auto', marginTop: 8, padding: '0 0 8px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+            {currentGroup.tabs.map(id => {
+              const active = tab === id;
+              const meta = TAB_META[id];
+              return (
+                <button key={id} onClick={() => setTab(id)} style={{
+                  flexShrink: 0, padding: '5px 11px', border: 'none', cursor: 'pointer',
+                  borderRadius: 14, fontSize: 12.5, whiteSpace: 'nowrap',
+                  background: active ? 'rgba(255,255,255,0.95)' : 'transparent',
+                  color: active ? '#6c63ff' : 'rgba(255,255,255,0.92)',
+                  fontWeight: active ? 800 : 600,
+                  borderBottom: active ? 'none' : '2px solid transparent',
+                  textDecoration: active ? 'none' : 'none',
+                }}>
+                  {meta.icon} {meta.label}
+                  {id === 'tasks' && pendingTaskCount > 0 && (
                     <span style={{ marginLeft: 5, background: active ? '#f06292' : '#fff', color: active ? '#fff' : '#f06292', borderRadius: 10, padding: '0 6px', fontSize: 10, fontWeight: 800 }}>{pendingTaskCount}</span>
                   )}
                 </button>
