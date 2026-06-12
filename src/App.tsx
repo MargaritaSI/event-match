@@ -56,19 +56,19 @@ const TAB_META: Record<Tab, { icon: string; label: string }> = {
   map:         { icon: '🗺', label: 'Map' },
   groups:      { icon: '🏘', label: 'Groups' },
   connect:     { icon: '☕', label: 'Connect' },
-  capture:     { icon: '⚡', label: 'Quick Capture' },
+  capture:     { icon: '⚡', label: 'Capture' },
   tasks:       { icon: '📋', label: 'Tasks' },
   sponsors:    { icon: '🏢', label: 'Sponsors' },
-  organisers:  { icon: '📊', label: 'Organisers' },
+  organisers:  { icon: '📊', label: 'Dashboard' },
   leaderboard: { icon: '🏆', label: 'Leaderboard' },
   mycard:      { icon: '🪪', label: 'My Card' },
 };
 
 // Two-level nav: a few logical groups in the header, each opening to thematic sub-tabs.
 const NAV_GROUPS: { id: string; icon: string; label: string; tabs: Tab[] }[] = [
+  { id: 'me',    icon: '🪪', label: 'Me',    tabs: ['mycard', 'capture', 'tasks', 'leaderboard'] },
   { id: 'meet',  icon: '🧑‍🤝‍🧑', label: 'Meet',  tabs: ['people', 'connections', 'groups', 'connect'] },
   { id: 'event', icon: '📅',     label: 'Event', tabs: ['schedule', 'map', 'sponsors', 'organisers'] },
-  { id: 'me',    icon: '🎒',     label: 'Me',    tabs: ['capture', 'tasks', 'mycard', 'leaderboard'] },
 ];
 
 export default function App() {
@@ -106,11 +106,13 @@ function AppInner() {
     if (card) setSharedCard(card);
   }, []);
 
-  // Paint html/body with the tab's fill colour so iOS overscroll / safe areas never flash white.
+  // Root = header-purple so the top notch / overscroll-up shows purple (not the wallpaper).
+  // body = tab fill so the bottom overscroll never flashes white/black. The full-width app
+  // container paints the fill across the content, so purple only appears in true overscroll.
   useEffect(() => {
-    const fill = TAB_BG[tab].fill;
-    document.documentElement.style.background = fill;
-    document.body.style.background = fill;
+    document.documentElement.style.background = '#6c63ff';
+    document.documentElement.style.overscrollBehavior = 'none';
+    document.body.style.background = TAB_BG[tab].fill;
   }, [tab]);
 
   const pendingRequests = requests.filter(r => r.status === 'pending').length;
@@ -206,20 +208,18 @@ function AppInner() {
             })}
           </div>
 
-          {/* Level 2 — thematic sub-tabs within the active group */}
-          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', gap: 4, overflowX: 'auto', marginTop: 8, padding: '0 0 8px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+          {/* Level 2 — thematic sub-tabs within the active group (centered, wraps if needed) */}
+          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 5, marginTop: 8, padding: '0 0 9px' }}>
             {currentGroup.tabs.map(id => {
               const active = tab === id;
               const meta = TAB_META[id];
               return (
                 <button key={id} onClick={() => setTab(id)} style={{
-                  flexShrink: 0, padding: '5px 11px', border: 'none', cursor: 'pointer',
-                  borderRadius: 14, fontSize: 12.5, whiteSpace: 'nowrap',
+                  flexShrink: 0, padding: '4px 9px', border: 'none', cursor: 'pointer',
+                  borderRadius: 13, fontSize: 11.5, whiteSpace: 'nowrap',
                   background: active ? 'rgba(255,255,255,0.95)' : 'transparent',
                   color: active ? '#6c63ff' : 'rgba(255,255,255,0.92)',
                   fontWeight: active ? 800 : 600,
-                  borderBottom: active ? 'none' : '2px solid transparent',
-                  textDecoration: active ? 'none' : 'none',
                 }}>
                   {meta.icon} {meta.label}
                   {id === 'tasks' && pendingTaskCount > 0 && (

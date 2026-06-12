@@ -107,6 +107,14 @@ export function GroupsPage() {
               </div>
             </div>
 
+            {/* Example discussions this community gathers around */}
+            <div style={{ marginBottom: 12, background: '#f8f8ff', borderRadius: 10, padding: 12 }}>
+              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>💬 Example discussions</div>
+              {selected.discussions.map((d, i) => (
+                <div key={i} style={{ fontSize: 12.5, color: '#555', marginBottom: 3 }}>• {d}</div>
+              ))}
+            </div>
+
             {joined.has(selected.id) && (
               <div style={{ background: '#f0fff4', borderRadius: 10, padding: 12, marginBottom: 12 }}>
                 <div style={{ fontWeight: 700, fontSize: 13, color: '#2d6a4f', marginBottom: 8 }}>👥 {selected.going + 1} going</div>

@@ -12,7 +12,7 @@ export default {
     allTimes: 'Время — Амстердам (CEST, UTC+2)', emptyMine: 'Добавь сессии из расписания',
   },
   map: {
-    title: 'Карта площадки', subtitle: 'Место проведения — React Summit 2025', entrance: 'Вход', registration: 'Регистрация',
+    title: 'Карта площадки', subtitle: 'Место проведения — DevConnect 2026', entrance: 'Вход', registration: 'Регистрация',
     workingZone: 'Рабочая зона', mainStage: 'Web Engineering Track', wc: 'Туалет', coffee: 'Кофе', food: 'Еда',
     hackathon: 'Зона хакатона', legend: 'Легенда',
   },
@@ -23,7 +23,7 @@ export default {
     contacts: 'Сохранённые контакты',
     tags: { networking: '🤝 Нетворкинг', client: '💼 Клиент', collab: '🚀 Коллаборация', other: '📌 Другое' },
   },
-  sponsors: { title: 'Спонсоры и участники', subtitle: 'Компании на React Summit 2025', forYou: 'Рекомендуем вам', booth: 'Стенд', website: 'Сайт', hiring: '🔥 Нанимают' },
+  sponsors: { title: 'Спонсоры и участники', subtitle: 'Компании на DevConnect 2026', forYou: 'Рекомендуем вам', booth: 'Стенд', website: 'Сайт', hiring: '🔥 Нанимают' },
   mycard: {
     title: 'Моя карточка', subtitle: 'Покажи QR — и тебя добавят в контакты', edit: 'Редактировать', save: 'Сохранить',
     cancel: 'Отмена', showQR: '📱 Показать QR для добавления', hideQR: 'Скрыть QR', qrHint: 'Сканируй камерой телефона',

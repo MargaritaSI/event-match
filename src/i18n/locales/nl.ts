@@ -13,7 +13,7 @@ export default {
     allTimes: 'Alle tijden Amsterdam (CEST, UTC+2)', emptyMine: 'Voeg sessies toe uit het schema',
   },
   map: {
-    title: 'Plattegrond', subtitle: 'Evenementenlocatie — React Summit 2025', entrance: 'Ingang', registration: 'Registratie',
+    title: 'Plattegrond', subtitle: 'Evenementenlocatie — DevConnect 2026', entrance: 'Ingang', registration: 'Registratie',
     workingZone: 'Werkzone', mainStage: 'Web Engineering Track', wc: 'WC', coffee: 'Koffie', food: 'Eten',
     hackathon: 'Hackathon zone', legend: 'Legenda',
   },
@@ -24,7 +24,7 @@ export default {
     contacts: 'Opgeslagen contacten',
     tags: { networking: '🤝 Netwerken', client: '💼 Klant', collab: '🚀 Samenwerking', other: '📌 Overig' },
   },
-  sponsors: { title: 'Sponsors & Exposanten', subtitle: 'Bedrijven op React Summit 2025', forYou: 'Aanbevolen voor jou', booth: 'Stand', website: 'Website', hiring: '🔥 Vacatures' },
+  sponsors: { title: 'Sponsors & Exposanten', subtitle: 'Bedrijven op DevConnect 2026', forYou: 'Aanbevolen voor jou', booth: 'Stand', website: 'Website', hiring: '🔥 Vacatures' },
   mycard: {
     title: 'Mijn kaart', subtitle: 'Toon QR om contacten te delen', edit: 'Profiel bewerken', save: 'Opslaan',
     cancel: 'Annuleren', showQR: '📱 QR tonen voor contacten', hideQR: 'QR verbergen', qrHint: 'Scan met telefoon camera',

@@ -12,6 +12,7 @@ export interface EventGroup {
   maxMembers: number;
   going: number; // baseline attendees already going
   discord: string; // community link that lives on after the event
+  discussions: string[]; // example talking points the community gathers around
   tags: string[];
 }
 
@@ -28,6 +29,7 @@ export const GROUPS: EventGroup[] = [
     meetPlace: 'Coffee Point',
     meetPlaceColor: '#795548',
     maxMembers: 20, going: 15, discord: 'https://discord.gg/devconnect',
+    discussions: ["Server components in production?", "Next.js vs Remix", "State management in 2026"],
     tags: ['React', 'Next.js', 'TypeScript'],
   },
   {
@@ -42,6 +44,7 @@ export const GROUPS: EventGroup[] = [
     meetPlace: 'Working Zone',
     meetPlaceColor: '#1565c0',
     maxMembers: 15, going: 12, discord: 'https://discord.gg/devconnect',
+    discussions: ["React Native vs Flutter — real talk", "App Store & TestFlight war stories", "Native or cross-platform?"],
     tags: ['iOS', 'Android', 'Flutter', 'React Native'],
   },
   {
@@ -56,6 +59,7 @@ export const GROUPS: EventGroup[] = [
     meetPlace: 'Food Court',
     meetPlaceColor: '#2e7d32',
     maxMembers: 12, going: 10, discord: 'https://discord.gg/devconnect',
+    discussions: ["Side projects & weekend hacks", "Freelance vs full-time", "Pricing your first SaaS"],
     tags: ['Startup', 'Product', 'B2B', 'B2C'],
   },
   {
@@ -70,6 +74,7 @@ export const GROUPS: EventGroup[] = [
     meetPlace: 'Web Engineering Track',
     meetPlaceColor: '#e65100',
     maxMembers: 15, going: 12, discord: 'https://discord.gg/devconnect',
+    discussions: ["Design tokens that scale", "Figma vs code-first", "Accessibility from day one"],
     tags: ['Figma', 'Design Systems', 'Accessibility'],
   },
   {
@@ -84,6 +89,7 @@ export const GROUPS: EventGroup[] = [
     meetPlace: 'Working Zone',
     meetPlaceColor: '#1565c0',
     maxMembers: 20, going: 15, discord: 'https://discord.gg/devconnect',
+    discussions: ["LLM products — what actually ships?", "RAG vs fine-tuning", "Agents in production"],
     tags: ['LLM', 'Agents', 'AI', 'Anthropic', 'OpenAI'],
   },
   {
@@ -98,6 +104,7 @@ export const GROUPS: EventGroup[] = [
     meetPlace: 'Coffee Point',
     meetPlaceColor: '#795548',
     maxMembers: 10, going: 9, discord: 'https://discord.gg/devconnect',
+    discussions: ["Focus & productivity systems", "Best timers for deep work", "Beating procrastination"],
     tags: ['ADHD', 'Productivity', 'Focus', 'Neurodiversity'],
   },
   {
@@ -112,6 +119,7 @@ export const GROUPS: EventGroup[] = [
     meetPlace: 'Food Court',
     meetPlaceColor: '#2e7d32',
     maxMembers: 12, going: 10, discord: 'https://discord.gg/devconnect',
+    discussions: ["Health apps & wearables", "Burnout & sustainable dev pace", "Wearable data you actually use"],
     tags: ['HealthTech', 'Wearables', 'Apple Watch', 'Mental Health'],
   },
   {
@@ -126,6 +134,7 @@ export const GROUPS: EventGroup[] = [
     meetPlace: 'Food Court',
     meetPlaceColor: '#2e7d32',
     maxMembers: 25, going: 18, discord: 'https://discord.gg/devconnect',
+    discussions: ["Best coworking in Amsterdam", "Where to eat near the venue", "Weekend trips from NL"],
     tags: ['Amsterdam', 'Netherlands', 'Local'],
   },
 ];

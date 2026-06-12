@@ -9,16 +9,6 @@ import { useGamification } from '../lib/gamification';
 const ALL_ICEBREAKERS = Object.values(ICE_BREAKERS).flat();
 const MY_INTERESTS = CURRENT_USER.interests;
 
-const TOPICS = [
-  { id: 't1', title: 'Side projects & weekend hacks', icon: '🛠', participants: 4, place: 'Coffee Point', time: 'Next break' },
-  { id: 't2', title: 'Focus & productivity systems', icon: '🧠', participants: 2, place: 'Coffee Point', time: '12:30' },
-  { id: 't3', title: 'Health apps & wearables', icon: '⌚', participants: 3, place: 'Food Court', time: '13:00' },
-  { id: 't4', title: 'LLM-powered products — what actually ships?', icon: '🤖', participants: 6, place: 'Working Zone', time: '14:30' },
-  { id: 't5', title: 'App Store & TestFlight war stories', icon: '📱', participants: 3, place: 'Coffee Point', time: '15:00' },
-  { id: 't6', title: 'Burnout & sustainable dev pace', icon: '💚', participants: 5, place: 'Food Court', time: 'Next break' },
-  { id: 't7', title: 'Freelance vs. full-time in 2025', icon: '💼', participants: 2, place: 'Coffee Point', time: '16:00' },
-  { id: 't8', title: 'React Native vs Flutter — real talk', icon: '⚛️', participants: 7, place: 'Working Zone', time: '11:30' },
-];
 
 const MEETUP_SYSTEMS = [
   {
@@ -56,7 +46,6 @@ const IB_PAGE = 15;
 export function ConnectPage() {
   const { award } = useGamification();
   const [currentIB, setCurrentIB] = useState(0);
-  const [joinedTopics, setJoinedTopics] = useState<Set<string>>(new Set());
   const [chosenSystem, setChosenSystem] = useState<string | null>(null);
   const [matchedUser, setMatchedUser] = useState<typeof MOCK_USERS[0] | null>(null);
   const [showAllIB, setShowAllIB] = useState(false);
@@ -209,47 +198,18 @@ export function ConnectPage() {
         )}
       </div>
 
-      {/* Discussion topics */}
+      {/* Discussion topics moved into Groups (lasting communities) */}
       <div>
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>🗣 Discussion Topics</div>
-        <p style={{ margin: '0 0 10px', fontSize: 13, color: '#666' }}>
-          <strong>One-off hallway chats</strong> for a single break — not a lasting community (that's Groups).
-          Join → you'll see <strong>where & when</strong> people gather. No commitment.
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {TOPICS.map(topic => {
-            const isJoined = joinedTopics.has(topic.id);
-            return (
-              <Card key={topic.id} style={{ borderRadius: 10, border: isJoined ? '2px solid #6c63ff' : '1px solid #e0e0e0' }}>
-                <CardBody style={{ padding: '10px 14px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 20, flexShrink: 0 }}>{topic.icon}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>{topic.title}</div>
-                      <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
-                        {isJoined ? topic.participants + 1 : topic.participants} people interested
-                      </div>
-                      {isJoined && (
-                        <div style={{ fontSize: 12, color: '#2d6a4f', marginTop: 4, fontWeight: 600 }}>
-                          📍 Meet at {topic.place} · {topic.time}
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => setJoinedTopics(prev => { const next = new Set(prev); isJoined ? next.delete(topic.id) : next.add(topic.id); return next; })}
-                      style={{
-                        padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 12,
-                        background: isJoined ? '#6c63ff' : '#f0f0f0', color: isJoined ? '#fff' : '#555', fontWeight: isJoined ? 700 : 400,
-                      }}
-                    >
-                      {isJoined ? '✓ In' : 'Join'}
-                    </button>
-                  </div>
-                </CardBody>
-              </Card>
-            );
-          })}
-        </div>
+        <Card style={{ borderRadius: 12, border: '1px solid #e0e0e0' }}>
+          <CardBody style={{ padding: '14px' }}>
+            <div style={{ fontSize: 13, color: '#555', lineHeight: 1.5 }}>
+              Topics now live inside <strong>Groups</strong> — each community lists its example discussions
+              (e.g. “React Native vs Flutter”, “LLM products — what actually ships?”) plus a set time, place and Discord.
+              Join one to gather around a shared topic.
+            </div>
+          </CardBody>
+        </Card>
       </div>
     </div>
   );
