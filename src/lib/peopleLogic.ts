@@ -75,13 +75,32 @@ export function matchesSearch(user: User, query: string): boolean {
   );
 }
 
-/** Apply interest/match filter + search, then sort. */
+/** Does the user have this specific skill — in their skills list or anywhere in their text? */
+export function userHasSkill(user: User, skill: string): boolean {
+  const s = skill.toLowerCase();
+  if ((user.skills || []).some(k => k.toLowerCase() === s)) return true;
+  const blob = [user.role, user.company, user.bio, user.lookingFor, user.canHelp, (user.hobbies || []).join(' ')]
+    .join(' ').toLowerCase();
+  return blob.includes(s);
+}
+
 export type PeopleFilter = Interest | 'all' | 'match' | 'speaker';
 
+/**
+ * Combine several filters at once, then sort:
+ *  - `interests`: OR — keep people who have ANY of the selected interests (empty = no interest filter)
+ *  - `skills`:    AND — keep people who have EVERY selected skill (from the facet dropdowns)
+ *  - `match`:     keep only people who share an interest or skill with me
+ *  - `speaker`:   keep only speakers
+ *  - `search`:    free‑text, ANDed with everything
+ */
 export function filterAndSort(
   users: User[],
   opts: {
-    filter: PeopleFilter;
+    interests?: Interest[];
+    skills?: string[];
+    match?: boolean;
+    speaker?: boolean;
     search: string;
     sort: SortMode;
     myInterests: Interest[];
@@ -89,14 +108,13 @@ export function filterAndSort(
   },
 ): User[] {
   const mySkills = opts.mySkills || [];
+  const wantInterests = opts.interests || [];
+  const wantSkills = opts.skills || [];
   const filtered = users.filter(u => {
-    if (opts.filter === 'match') {
-      if (affinity(u, opts.myInterests, mySkills) === 0) return false; // shared interest OR skill
-    } else if (opts.filter === 'speaker') {
-      if (!u.speaker) return false;
-    } else if (opts.filter !== 'all') {
-      if (!u.interests.includes(opts.filter)) return false;
-    }
+    if (opts.match && affinity(u, opts.myInterests, mySkills) === 0) return false;
+    if (opts.speaker && !u.speaker) return false;
+    if (wantInterests.length > 0 && !wantInterests.some(i => u.interests.includes(i))) return false; // OR
+    if (wantSkills.length > 0 && !wantSkills.every(s => userHasSkill(u, s))) return false;            // AND
     return matchesSearch(u, opts.search);
   });
   return sortUsers(filtered, opts.sort, opts.myInterests, mySkills);

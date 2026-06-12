@@ -5,7 +5,7 @@ import { MOCK_USERS, ICE_BREAKERS, INTEREST_LABELS, INTENT_LABELS, CURRENT_USER,
 import { InterestBadge } from '../components/InterestBadge';
 import { Avatar } from '../components/Avatar';
 import { filterAndSort, commonInterests, commonSkills, affinity, topInterests } from '../lib/peopleLogic';
-import type { SortMode, PeopleFilter } from '../lib/peopleLogic';
+import type { SortMode } from '../lib/peopleLogic';
 import { intentSynergies } from '../lib/intentLogic';
 import { useT } from '../i18n';
 import type { User, Interest } from '../types';
@@ -30,8 +30,27 @@ export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile 
   const [pendingSent, setPendingSent] = useState<Set<string>>(new Set());
   const [matchDialog, setMatchDialog] = useState<User | null>(null);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<PeopleFilter>('all');
+  const [interestFilters, setInterestFilters] = useState<Set<Interest>>(new Set());
+  const [skillFilters, setSkillFilters] = useState<Set<string>>(new Set());
+  const [matchOn, setMatchOn] = useState(false);
+  const [speakerOn, setSpeakerOn] = useState(false);
   const [sort, setSort] = useState<SortMode>('common');
+
+  const activeFilterCount = interestFilters.size + skillFilters.size + (matchOn ? 1 : 0) + (speakerOn ? 1 : 0);
+
+  function toggleInterestFilter(i: Interest) {
+    setInterestFilters(prev => { const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s; });
+  }
+  function toggleSkillFilter(skill: string) {
+    setSkillFilters(prev => { const s = new Set(prev); s.has(skill) ? s.delete(skill) : s.add(skill); return s; });
+  }
+  function clearFilters() {
+    setInterestFilters(new Set());
+    setSkillFilters(new Set());
+    setMatchOn(false);
+    setSpeakerOn(false);
+    setSearch('');
+  }
 
   function getCommonInterests(user: User): Interest[] {
     return commonInterests(user, MY_INTERESTS);
@@ -54,8 +73,14 @@ export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile 
   }
 
   const filtered = useMemo(
-    () => filterAndSort(MOCK_USERS, { filter, search, sort, myInterests: MY_INTERESTS, mySkills: MY_SKILLS }),
-    [search, filter, sort],
+    () => filterAndSort(MOCK_USERS, {
+      interests: Array.from(interestFilters),
+      skills: Array.from(skillFilters),
+      match: matchOn,
+      speaker: speakerOn,
+      search, sort, myInterests: MY_INTERESTS, mySkills: MY_SKILLS,
+    }),
+    [search, interestFilters, skillFilters, matchOn, speakerOn, sort],
   );
 
   return (
@@ -75,44 +100,55 @@ export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile 
         />
       </div>
 
-      {/* Facet dropdowns — pick a specific language / design / sport */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+      {/* Facet dropdowns — add a specific language / design / sport to the filter (combine, multi) */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
         {FACETS.map(facet => (
           <select
             key={facet.key}
-            value={facet.options.includes(search) ? search : ''}
-            onChange={e => setSearch(e.target.value)}
+            value=""
+            onChange={e => { if (e.target.value) toggleSkillFilter(e.target.value); e.target.value = ''; }}
             style={{
               flex: 1, minWidth: 100, padding: '7px 8px', borderRadius: 8, border: '1px solid #ddd',
               fontSize: 12.5, background: '#fff', color: '#555', cursor: 'pointer',
             }}
           >
             <option value="">{facet.label}</option>
-            {facet.options.map(o => <option key={o} value={o}>{o}</option>)}
+            {facet.options.map(o => (
+              <option key={o} value={o}>{skillFilters.has(o) ? '✓ ' : ''}{o}</option>
+            ))}
           </select>
         ))}
-        {search && (
-          <button onClick={() => setSearch('')} style={{ background: '#f0f0f0', border: 'none', borderRadius: 8, padding: '0 10px', cursor: 'pointer', fontSize: 12, color: '#888' }}>
-            ✕ Clear
-          </button>
-        )}
       </div>
 
-      {/* Filter chips — ordered by popularity, scrollable on iPhone */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 10, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
-        <Chip active={filter === 'all'} onClick={() => setFilter('all')}>All</Chip>
-        <Chip active={filter === 'match'} onClick={() => setFilter('match')} color="#6c63ff">✨ For me</Chip>
-        <Chip active={filter === 'speaker'} onClick={() => setFilter('speaker')} color="#e65100">🎤 Speakers</Chip>
+      {/* Filter chips — multi-select; selected ones combine */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
+        <Chip active={activeFilterCount === 0} onClick={clearFilters}>All</Chip>
+        <Chip active={matchOn} onClick={() => setMatchOn(v => !v)} color="#6c63ff">✨ For me</Chip>
+        <Chip active={speakerOn} onClick={() => setSpeakerOn(v => !v)} color="#e65100">🎤 Speakers</Chip>
         {FILTER_INTERESTS.map(i => (
-          <Chip key={i} active={filter === i} onClick={() => setFilter(i)}>
+          <Chip key={i} active={interestFilters.has(i)} onClick={() => toggleInterestFilter(i)}>
             {INTEREST_LABELS[i]}
           </Chip>
         ))}
       </div>
 
+      {/* Selected skill filters (from dropdowns) as removable chips */}
+      {skillFilters.size > 0 && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+          {Array.from(skillFilters).map(s => (
+            <button key={s} onClick={() => toggleSkillFilter(s)} style={{
+              fontSize: 12, borderRadius: 14, padding: '3px 10px', border: 'none', cursor: 'pointer',
+              background: '#2e7d32', color: '#fff', fontWeight: 600,
+            }}>{s} ✕</button>
+          ))}
+        </div>
+      )}
+
       {/* Sort + count */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
-        <span style={{ fontSize: 12, color: '#999' }}>Showing {filtered.length} of {MOCK_USERS.length}</span>
+        <span style={{ fontSize: 12, color: '#999' }}>
+          Showing {filtered.length} of {MOCK_USERS.length}{activeFilterCount > 0 ? ` · ${activeFilterCount} filter${activeFilterCount > 1 ? 's' : ''}` : ''}
+        </span>
         <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
           <span style={{ fontSize: 11, color: '#aaa' }}>Sort:</span>
           {([

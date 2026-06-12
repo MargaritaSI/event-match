@@ -98,30 +98,50 @@ describe('matchesSearch', () => {
 });
 
 describe('filterAndSort', () => {
-  it('"match" filter keeps only people with shared interests, sorted by most common', () => {
-    const res = filterAndSort(USERS, { filter: 'match', search: '', sort: 'common', myInterests: me });
+  it('match=true keeps only people with shared interests, sorted by most common', () => {
+    const res = filterAndSort(USERS, { match: true, search: '', sort: 'common', myInterests: me });
     expect(res.map(x => x.name)).toEqual(['Charlie', 'Dave', 'Bob']); // Alice (0 common) excluded
   });
 
-  it('interest filter narrows to that interest', () => {
-    const res = filterAndSort(USERS, { filter: 'sport', search: '', sort: 'name', myInterests: me });
+  it('a single interest filter narrows to that interest', () => {
+    const res = filterAndSort(USERS, { interests: ['sport'], search: '', sort: 'name', myInterests: me });
     expect(res.map(x => x.name)).toEqual(['Alice', 'Bob']);
   });
 
-  it('search composes with filter', () => {
-    const res = filterAndSort(USERS, { filter: 'all', search: 'alice', sort: 'name', myInterests: me });
+  it('MULTIPLE interest filters are OR-combined (anyone with any of them)', () => {
+    const res = filterAndSort(USERS, { interests: ['sport', 'startup'], search: '', sort: 'name', myInterests: me });
+    // Alice(travel,sport) Bob(design,sport) Charlie(health,mobile,startup)
+    expect(res.map(x => x.name).sort()).toEqual(['Alice', 'Bob', 'Charlie']);
+  });
+
+  it('multiple skill filters are AND-combined', () => {
+    const a = u('a', 'Ann', ['ai'], { skills: ['Swift', 'Running'] });
+    const b = u('b', 'Ben', ['ai'], { skills: ['Swift'] });
+    const res = filterAndSort([a, b], { skills: ['Swift', 'Running'], search: '', sort: 'name', myInterests: me });
+    expect(res.map(x => x.name)).toEqual(['Ann']); // Ben lacks Running
+  });
+
+  it('interest OR + skill AND + match all combine', () => {
+    const x = u('x', 'Xena', ['startup'], { skills: ['Swift'] }); // startup ✓, swift ✓, shares startup with me
+    const y = u('y', 'Yan', ['startup'], { skills: [] });          // startup ✓ but no Swift
+    const res = filterAndSort([x, y], { interests: ['startup'], skills: ['Swift'], match: true, search: '', sort: 'name', myInterests: me, mySkills });
+    expect(res.map(x => x.name)).toEqual(['Xena']);
+  });
+
+  it('search composes with filters', () => {
+    const res = filterAndSort(USERS, { search: 'alice', sort: 'name', myInterests: me });
     expect(res.map(x => x.name)).toEqual(['Alice']);
   });
 
-  it('"match" filter includes someone with 0 shared interests but a shared skill', () => {
+  it('match=true includes someone with 0 shared interests but a shared skill', () => {
     const skillOnly = u('5', 'Eve', ['travel'], { skills: ['Swift'] }); // 0 interest, 1 skill
-    const res = filterAndSort([...USERS, skillOnly], { filter: 'match', search: '', sort: 'common', myInterests: me, mySkills });
+    const res = filterAndSort([...USERS, skillOnly], { match: true, search: '', sort: 'common', myInterests: me, mySkills });
     expect(res.map(x => x.name)).toContain('Eve');
   });
 
   it('search matches by skill text', () => {
     const skilled = u('6', 'Frank', ['ai'], { skills: ['Kotlin'] });
-    const res = filterAndSort([...USERS, skilled], { filter: 'all', search: 'kotlin', sort: 'name', myInterests: me });
+    const res = filterAndSort([...USERS, skilled], { search: 'kotlin', sort: 'name', myInterests: me });
     expect(res.map(x => x.name)).toEqual(['Frank']);
   });
 });
