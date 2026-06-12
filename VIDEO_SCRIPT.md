@@ -28,7 +28,7 @@ Speak ~10% slower than feels natural. Keep moving — don't linger on any screen
 ---
 
 ### 0:35 – 1:05 · Discover & match — *People tab*
-> "Here are the people at the event. I'm an iOS dev into health and design — so EventMatch ranks
+> "Here are the people at the event. Say I'm into health, mobile and design — EventMatch ranks
 > everyone by **shared interests *and* concrete skills**, and flags **intent matches**.
 > Look — it surfaces a recruiter who's *hiring* against my *open‑to‑work*, and a designer I share
 > Swift and UI/UX with. I can filter by language, design discipline or sport, or search anything."

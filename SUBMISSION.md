@@ -19,10 +19,10 @@ moments into lasting, actionable connections — matching you by interests, skil
 capturing the contact and the next step in two taps, and reminding you to follow through.*
 
 ### Meet the team
-- **Margarita — "The Solo Full‑Stack Builder & Designer."** Designed the product, built the entire
-  KendoReact front‑end, wrote the matching/gamification/scheduling logic and its tests, set up CI/CD
-  to GitHub Pages, and made all the design decisions (palette, illustrations, IA). One person, one
-  night, one shipped product.
+- **Margarita — "The Solo Builder & Designer."** A QA engineer who actively builds products with AI.
+  Designed the product, built the entire KendoReact front‑end, wrote the matching/gamification/
+  scheduling logic and its tests, set up CI/CD to GitHub Pages, and made all the design decisions
+  (palette, illustrations, IA). One person + AI, one night, one shipped product.
 
 ---
 
