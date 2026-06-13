@@ -20,7 +20,12 @@ import type { SharedCard } from './components/SharedCardDialog';
 import { I18nContext, useI18nState } from './i18n';
 import { GamificationProvider, useGamification } from './lib/gamification';
 import { locationToZoneId } from './lib/scheduleLogic';
+import * as backend from './lib/backend';
+import { loadProfile, profileToUser, type StoredProfile } from './lib/profile';
+import { MOCK_USERS, setExtraUsers } from './data/mockData';
 import type { Task, User } from './types';
+
+const MOCK_IDS = new Set(MOCK_USERS.map(u => u.id));
 
 // Seeded incoming meeting requests (in a real app these arrive from the backend).
 const SEED_REQUESTS: MeetRequest[] = [
@@ -92,12 +97,20 @@ function AppInner() {
   const [inboxOpen, setInboxOpen] = useState(false);
   const [sharedCard, setSharedCard] = useState<SharedCard | null>(null);
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
+  // Attendee list shown in Discover: the built-in demo crowd, merged with live backend
+  // profiles when cloud sync is on. Stays just the demo crowd when the backend is off.
+  const [people, setPeople] = useState<User[]>(MOCK_USERS);
 
   // Central match registry — used by People, the requests inbox and the Connections tab.
   function addMatch(userId: string) {
     if (matchedIds.has(userId)) return;
     setMatchedIds(prev => new Set(prev).add(userId));
     game.award('match');
+    // Persist the match and, for a real (non-demo) attendee, notify them with a request.
+    backend.addConnection(userId);
+    if (backend.isBackendEnabled && !MOCK_IDS.has(userId)) {
+      backend.sendRequest(userId, 'Wants to connect on EventMatch');
+    }
   }
 
   // If opened via a shared link (#card=...), show that person's card.
@@ -105,6 +118,54 @@ function AppInner() {
     const card = decodeSharedCard(window.location.hash);
     if (card) setSharedCard(card);
   }, []);
+
+  // Cloud sync (opt-in): anonymous session → publish my card → load the crowd, my
+  // connections and incoming requests → subscribe to live changes. All no-ops when the
+  // backend has no keys, so the app keeps working purely on localStorage.
+  useEffect(() => {
+    if (!backend.isBackendEnabled) return;
+    let cancelled = false;
+    let cleanup = () => {};
+
+    async function refreshProfiles() {
+      const profs = await backend.fetchProfiles();
+      if (cancelled) return;
+      setExtraUsers(profs);
+      const extra = profs.filter(p => !MOCK_IDS.has(p.id));
+      setPeople(extra.length ? [...MOCK_USERS, ...extra] : MOCK_USERS);
+    }
+    async function refreshRequests() {
+      const reqs = await backend.fetchRequests();
+      if (cancelled) return;
+      setRequests(prev => {
+        const byId = new Map(SEED_REQUESTS.map(r => [r.userId, r]));
+        for (const r of prev) byId.set(r.userId, r); // keep local accept/decline edits
+        for (const r of reqs) byId.set(r.userId, r); // backend is source of truth for cloud reqs
+        return Array.from(byId.values());
+      });
+    }
+
+    (async () => {
+      const uid = await backend.initSession();
+      if (!uid || cancelled) return;
+      backend.upsertMyProfile(profileToUser(loadProfile(), uid));
+      await refreshProfiles();
+      const conns = await backend.fetchConnections();
+      if (!cancelled && conns.length) setMatchedIds(prev => new Set([...prev, ...conns]));
+      await refreshRequests();
+      const unsubReq = backend.subscribeRequests(refreshRequests);
+      const unsubProf = backend.subscribeProfiles(refreshProfiles);
+      cleanup = () => { unsubReq(); unsubProf(); };
+    })();
+
+    return () => { cancelled = true; cleanup(); };
+  }, []);
+
+  // Publish my edited card to the backend so others can discover me.
+  function handleProfileSaved(p: StoredProfile) {
+    const uid = backend.currentUid();
+    if (uid) backend.upsertMyProfile(profileToUser(p, uid));
+  }
 
   // Paint BOTH the root and body with the tab fill so no strip of a different colour ever
   // shows at the very bottom (home-indicator area) or during the keyboard transition. The
@@ -120,10 +181,12 @@ function AppInner() {
 
   function acceptRequest(userId: string) {
     setRequests(prev => prev.map(r => r.userId === userId ? { ...r, status: 'accepted' } : r));
+    backend.updateRequest(userId, 'accepted');
     addMatch(userId); // awards points + registers the connection
   }
   function declineRequest(userId: string) {
     setRequests(prev => prev.map(r => r.userId === userId ? { ...r, status: 'declined' } : r));
+    backend.updateRequest(userId, 'declined');
   }
 
   function toggleSession(id: string) {
@@ -273,7 +336,7 @@ function AppInner() {
             background: 'rgba(255,255,255,0.92)', borderRadius: 18,
             boxShadow: '0 6px 24px rgba(0,0,0,0.10)', padding: '4px 16px 20px',
           }}>
-          {tab === 'people'      && <PeoplePage mySessionIds={mySessionIds} matchedIds={matchedIds} onMatch={addMatch} onOpenProfile={setProfileUser} />}
+          {tab === 'people'      && <PeoplePage mySessionIds={mySessionIds} matchedIds={matchedIds} onMatch={addMatch} onOpenProfile={setProfileUser} users={people} />}
           {tab === 'connections' && <ConnectionsPage matchedIds={matchedIds} onOpenProfile={setProfileUser} />}
           {tab === 'schedule'    && <SchedulePage mySessionIds={mySessionIds} onToggleSession={toggleSession} onOpenMap={openMapForLocation} onOpenConnect={() => setTab('connect')} />}
           {tab === 'map'         && <MapPage highlight={mapHighlight} />}
@@ -284,7 +347,7 @@ function AppInner() {
           {tab === 'sponsors'    && <SponsorsPage onOpenMap={openMapForLocation} />}
           {tab === 'organisers'  && <OrganisersPage myMatches={matchedIds.size} />}
           {tab === 'leaderboard' && <LeaderboardPage />}
-          {tab === 'mycard'      && <MyCardPage mySessionIds={mySessionIds} />}
+          {tab === 'mycard'      && <MyCardPage mySessionIds={mySessionIds} onProfileSaved={handleProfileSaved} />}
           </div>
 
           {/* Footer illustration — bigger, centered at the bottom on the fill colour (outside the white panel) */}

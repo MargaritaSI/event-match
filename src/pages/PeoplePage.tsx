@@ -21,9 +21,10 @@ interface Props {
   matchedIds: Set<string>;
   onMatch: (userId: string) => void;
   onOpenProfile: (u: User) => void;
+  users?: User[]; // attendee list (demo crowd + live backend profiles); defaults to the demo crowd
 }
 
-export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile }: Props) {
+export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile, users = MOCK_USERS }: Props) {
   const { t } = useT();
   const matched = matchedIds;
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -73,21 +74,21 @@ export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile 
   }
 
   const filtered = useMemo(
-    () => filterAndSort(MOCK_USERS, {
+    () => filterAndSort(users, {
       interests: Array.from(interestFilters),
       skills: Array.from(skillFilters),
       match: matchOn,
       speaker: speakerOn,
       search, sort, myInterests: MY_INTERESTS, mySkills: MY_SKILLS,
     }),
-    [search, interestFilters, skillFilters, matchOn, speakerOn, sort],
+    [users, search, interestFilters, skillFilters, matchOn, speakerOn, sort],
   );
 
   return (
     <div style={{ padding: '16px 0' }}>
       <h2 style={{ margin: '0 0 4px', fontSize: 20 }}>{t.people.title}</h2>
       <p style={{ margin: '0 0 14px', color: '#666', fontSize: 14 }}>
-        {EVENT_NAME} · {MOCK_USERS.length} {t.people.subtitle}
+        {EVENT_NAME} · {users.length} {t.people.subtitle}
       </p>
 
       {/* Search */}
@@ -147,7 +148,7 @@ export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile 
       {/* Sort + count */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
         <span style={{ fontSize: 12, color: '#999' }}>
-          Showing {filtered.length} of {MOCK_USERS.length}{activeFilterCount > 0 ? ` · ${activeFilterCount} filter${activeFilterCount > 1 ? 's' : ''}` : ''}
+          Showing {filtered.length} of {users.length}{activeFilterCount > 0 ? ` · ${activeFilterCount} filter${activeFilterCount > 1 ? 's' : ''}` : ''}
         </span>
         <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
           <span style={{ fontSize: 11, color: '#aaa' }}>Sort:</span>

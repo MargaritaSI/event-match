@@ -7,73 +7,32 @@ import { InterestBadge } from '../components/InterestBadge';
 import { INTEREST_LABELS, INTENT_LABELS } from '../data/mockData';
 import { useGamification } from '../lib/gamification';
 import { ACHIEVEMENTS } from '../lib/gamificationLogic';
-import { load, save, clearAll, getOrCreateUid } from '../lib/storage';
+import { clearAll, getOrCreateUid } from '../lib/storage';
+import {
+  CONTACT_FIELDS, loadProfile, saveProfile,
+  type StoredProfile, type ContactField,
+} from '../lib/profile';
 import { useT } from '../i18n';
 import { FACETS } from '../data/mockData';
 import type { Interest, Intent } from '../types';
 
-const CONTACT_FIELDS = ['telegram', 'instagram', 'linkedin', 'whatsapp', 'other'] as const;
-type ContactField = typeof CONTACT_FIELDS[number];
-
 const ALL_INTERESTS: Interest[] = ['sport', 'design', 'startup', 'travel', 'health', 'ai', 'networking', 'business', 'programming', 'frontend', 'backend', 'mobile', 'data', 'gamedev'];
 const ALL_INTENTS: Intent[] = ['hiring', 'job', 'cofounder', 'clients', 'invest', 'mentor', 'learning'];
 
-interface Profile {
-  firstName: string;
-  lastName: string;
-  role: string;
-  bio: string;
-  company: string;
-  city: string;
-  country: string;
-  telegram: string;
-  instagram: string;
-  linkedin: string;
-  whatsapp: string;
-  otherContact: string;
-  otherLabel: string;
-  interests: Interest[];
-  intents: Intent[];
-  skills: string[];
-  speaker: boolean;
-  speakerTopic: string;
-  hobbies: string;
-  lookingFor: string;
-  canHelp: string;
-  photo: string | null;
-  showOnMatch: ContactField[]; // which contacts are revealed when you match
-}
-
 const MAX_INTERESTS = 10;
-
-const DEFAULT_PROFILE: Profile = {
-  firstName: 'Margarita', lastName: '', role: 'iOS Developer',
-  bio: 'Building apps for health & productivity. Into wearables, cycle tracking and focus tools.',
-  company: '', city: 'Amsterdam', country: 'Netherlands',
-  telegram: '@margarita', instagram: '@margarita.dev', linkedin: '', whatsapp: '', otherContact: '', otherLabel: '',
-  interests: ['health', 'mobile', 'startup', 'design'],
-  intents: ['cofounder', 'learning'],
-  skills: ['Swift', 'UI/UX', 'Running'],
-  speaker: false,
-  speakerTopic: '',
-  hobbies: 'Running, Sketching, Cold water swimming',
-  lookingFor: 'A backend dev to pair on a health app side-project',
-  canHelp: 'iOS/SwiftUI, App Store submission, HealthKit',
-  photo: null,
-  showOnMatch: ['telegram', 'instagram', 'linkedin', 'whatsapp', 'other'],
-};
 
 interface Props {
   mySessionIds: Set<string>;
+  onProfileSaved?: (p: StoredProfile) => void;
 }
 
-export function MyCardPage({ mySessionIds }: Props) {
+export function MyCardPage({ mySessionIds, onProfileSaved }: Props) {
   const { t } = useT();
   const game = useGamification();
   // Load a saved profile from localStorage so a returning visitor keeps their card.
   const [uid] = useState(() => getOrCreateUid());
-  const [profile, setProfile] = useState<Profile>(() => ({ ...DEFAULT_PROFILE, ...load<Partial<Profile>>('profile', {}) }));
-  const [draft, setDraft] = useState<Profile>(profile);
+  const [profile, setProfile] = useState<StoredProfile>(() => loadProfile());
+  const [draft, setDraft] = useState<StoredProfile>(profile);
   const [editing, setEditing] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -83,7 +42,8 @@ export function MyCardPage({ mySessionIds }: Props) {
 
   function handleSave() {
     setProfile(draft);
-    save('profile', draft); // persist
+    saveProfile(draft); // persist locally
+    onProfileSaved?.(draft); // publish to the backend (no-op when cloud sync is off)
     setEditing(false);
     game.award('profile_completed', true); // once-only
   }

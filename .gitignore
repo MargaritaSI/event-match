@@ -10,3 +10,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .claude
+
+# local env (Supabase keys)
+.env
+.env.local
+.env.*.local

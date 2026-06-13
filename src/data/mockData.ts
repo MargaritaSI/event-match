@@ -71,17 +71,33 @@ export function userCode(id: string): string {
   return `EM-${id.padStart(3, '0')}`;
 }
 
-/** Look up an attendee by id. */
+// Real attendees fetched from the backend are registered here so the lookups below
+// (used by the inbox, capture picker, tasks and connections) resolve them too — without
+// every caller having to know about the backend. Empty unless cloud sync is on.
+let extraUsers: User[] = [];
+
+/** Register live backend profiles (deduped against the built-in demo crowd). */
+export function setExtraUsers(users: User[]): void {
+  const mockIds = new Set(MOCK_USERS.map(u => u.id));
+  extraUsers = users.filter(u => !mockIds.has(u.id));
+}
+
+/** The full attendee set: built-in demo crowd + any live backend profiles. */
+export function allUsers(): User[] {
+  return extraUsers.length ? [...MOCK_USERS, ...extraUsers] : MOCK_USERS;
+}
+
+/** Look up an attendee by id (demo crowd or live backend). */
 export function getUserById(id: string | undefined): User | undefined {
   if (!id) return undefined;
-  return MOCK_USERS.find(u => u.id === id);
+  return allUsers().find(u => u.id === id);
 }
 
 /** Find an attendee by free text: matches name, role, or code (EM-007 / 007 / 7). */
 export function findUsers(query: string): User[] {
   const q = query.trim().toLowerCase();
-  if (!q) return MOCK_USERS;
-  return MOCK_USERS.filter(u =>
+  if (!q) return allUsers();
+  return allUsers().filter(u =>
     u.name.toLowerCase().includes(q) ||
     (u.role || '').toLowerCase().includes(q) ||
     userCode(u.id).toLowerCase().includes(q) ||

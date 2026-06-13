@@ -38,16 +38,19 @@ one app, organised into **Me · Meet · Event**:
 - **React 19 + TypeScript + Vite**
 - Custom, dependency‑free UI kit in `src/ui/` (Buttons · Inputs · Cards · Dialogs) — the app was
   **originally built on KendoReact** for the Kendo UI challenge, then migrated off the dependency
-- `qrcode.react`, `localStorage` persistence (no backend by design)
+- `qrcode.react`, `localStorage` persistence (works fully offline)
+- **Optional Supabase backend** for real cross‑device sync (profiles · connections · live meeting
+  requests) — opt‑in via env keys, code‑split so a keyless build never downloads it. See
+  **[BACKEND.md](BACKEND.md)**.
 - Pure‑TypeScript domain logic in `src/lib/` (matching · intent · capture · schedule · gamification)
-- **58 unit tests** (Vitest)
+- **67 unit tests** (Vitest)
 - **CI/CD:** GitHub Actions → GitHub Pages
 
 ## Run locally
 ```bash
 npm install
 npm run dev      # http://localhost:5174
-npm test         # 58 unit tests
+npm test         # 67 unit tests
 npm run build    # production build → dist/
 ```
 
