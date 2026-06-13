@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { rowToUser, userToRow, rowToRequest } from './mappers';
-import { profileToUser, DEFAULT_PROFILE } from '../profile';
+import { profileToUser, DEFAULT_PROFILE, type StoredProfile } from '../profile';
 import type { User } from '../../types';
 
 describe('rowToUser', () => {
@@ -53,22 +53,29 @@ describe('rowToRequest', () => {
 });
 
 describe('profileToUser', () => {
-  it('builds a User from the default profile', () => {
-    const u = profileToUser(DEFAULT_PROFILE, 'uid-1');
+  const filled: StoredProfile = {
+    ...DEFAULT_PROFILE,
+    firstName: 'Ada', lastName: 'Lovelace', role: 'Engineer',
+    interests: ['health', 'ai'], skills: ['Swift', 'Go'],
+    telegram: '@ada', hobbies: 'Running, Chess , ',
+  };
+
+  it('builds a User from a filled profile', () => {
+    const u = profileToUser(filled, 'uid-1');
     expect(u.id).toBe('uid-1');
-    expect(u.name).toBe('Margarita');
+    expect(u.name).toBe('Ada Lovelace');
     expect(u.interests).toContain('health');
     expect(u.skills).toContain('Swift');
   });
 
   it('splits hobbies string into an array and keeps contact handles locally', () => {
-    const u = profileToUser({ ...DEFAULT_PROFILE, hobbies: 'Running, Chess , ' }, 'uid');
+    const u = profileToUser(filled, 'uid');
     expect(u.hobbies).toEqual(['Running', 'Chess']);
-    expect(u.socials.telegram).toBe('@margarita');
+    expect(u.socials.telegram).toBe('@ada');
   });
 
-  it('falls back to "You" when no name is set', () => {
-    const u = profileToUser({ ...DEFAULT_PROFILE, firstName: '', lastName: '' }, 'uid');
+  it('falls back to "You" when no name is set (blank default profile)', () => {
+    const u = profileToUser(DEFAULT_PROFILE, 'uid');
     expect(u.name).toBe('You');
   });
 });

@@ -40,8 +40,8 @@ one app, organised into **Me · Meet · Event**:
   **originally built on KendoReact** for the Kendo UI challenge, then migrated off the dependency
 - `qrcode.react`, `localStorage` persistence (works fully offline)
 - **Optional Supabase backend** for real cross‑device sync (profiles · connections · live meeting
-  requests) — opt‑in via env keys, code‑split so a keyless build never downloads it. See
-  **[BACKEND.md](BACKEND.md)**.
+  requests · follow‑up tasks) — anonymous per‑device auth, opt‑in via env keys, code‑split so a
+  keyless build never downloads it. See **[BACKEND.md](BACKEND.md)**.
 - Pure‑TypeScript domain logic in `src/lib/` (matching · intent · capture · schedule · gamification)
 - **67 unit tests** (Vitest)
 - **CI/CD:** GitHub Actions → GitHub Pages

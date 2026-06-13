@@ -35,22 +35,30 @@ export interface StoredProfile {
   showOnMatch: ContactField[]; // which contacts are revealed when you match
 }
 
+// A blank card — every new visitor starts with their OWN empty profile and fills it in
+// (see the onboarding gate in App). It must NOT be pre-filled with a real person, or every
+// new device would impersonate them and flood discovery.
 export const DEFAULT_PROFILE: StoredProfile = {
-  firstName: 'Margarita', lastName: '', role: 'iOS Developer',
-  bio: 'Building apps for health & productivity. Into wearables, cycle tracking and focus tools.',
-  company: '', city: 'Amsterdam', country: 'Netherlands',
-  telegram: '@margarita', instagram: '@margarita.dev', linkedin: '', whatsapp: '', otherContact: '', otherLabel: '',
-  interests: ['health', 'mobile', 'startup', 'design'],
-  intents: ['cofounder', 'learning'],
-  skills: ['Swift', 'UI/UX', 'Running'],
+  firstName: '', lastName: '', role: '',
+  bio: '',
+  company: '', city: '', country: '',
+  telegram: '', instagram: '', linkedin: '', whatsapp: '', otherContact: '', otherLabel: '',
+  interests: [],
+  intents: [],
+  skills: [],
   speaker: false,
   speakerTopic: '',
-  hobbies: 'Running, Sketching, Cold water swimming',
-  lookingFor: 'A backend dev to pair on a health app side-project',
-  canHelp: 'iOS/SwiftUI, App Store submission, HealthKit',
+  hobbies: '',
+  lookingFor: '',
+  canHelp: '',
   photo: null,
   showOnMatch: ['telegram', 'instagram', 'linkedin', 'whatsapp', 'other'],
 };
+
+/** Has the visitor actually created their card (entered at least a name)? */
+export function hasProfile(p: StoredProfile): boolean {
+  return p.firstName.trim().length > 0;
+}
 
 export function loadProfile(): StoredProfile {
   return { ...DEFAULT_PROFILE, ...load<Partial<StoredProfile>>('profile', {}) };

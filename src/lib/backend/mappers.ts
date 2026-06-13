@@ -2,7 +2,7 @@
  * Pure row <-> domain mappings for the Supabase backend. No client import here,
  * so these stay trivially unit-testable.
  */
-import type { User } from '../../types';
+import type { Task, User } from '../../types';
 import type { MeetRequest } from '../../components/RequestsInbox';
 
 export interface ProfileRow {
@@ -52,4 +52,15 @@ export function userToRow(user: User, id: string): ProfileRow {
 export function rowToRequest(row: RequestRow): MeetRequest {
   const status = row.status === 'accepted' || row.status === 'declined' ? row.status : 'pending';
   return { userId: row.from_id, status, note: row.note ?? undefined };
+}
+
+/** Task → JSON-safe object (Date → ISO) for storage/transport. */
+export function serializeTask(t: Task): Record<string, unknown> {
+  return { ...t, dueDate: t.dueDate instanceof Date ? t.dueDate.toISOString() : t.dueDate };
+}
+
+/** JSON object → Task (ISO → Date). Tolerant of an already-Date or missing value. */
+export function reviveTask(data: Record<string, unknown>): Task {
+  const due = data.dueDate;
+  return { ...(data as unknown as Task), dueDate: due ? new Date(due as string) : new Date() };
 }

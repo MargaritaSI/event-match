@@ -6,8 +6,11 @@
  * empty data so the caller transparently falls back to its localStorage / in-memory state.
  */
 import { getClient, isBackendEnabled } from './client';
-import { rowToUser, userToRow, rowToRequest, type ProfileRow, type RequestRow } from './mappers';
-import type { User } from '../../types';
+import {
+  rowToUser, userToRow, rowToRequest, serializeTask, reviveTask,
+  type ProfileRow, type RequestRow,
+} from './mappers';
+import type { Task, User } from '../../types';
 import type { MeetRequest } from '../../components/RequestsInbox';
 
 export { isBackendEnabled };
@@ -115,6 +118,36 @@ export async function updateRequest(fromId: string, status: 'accepted' | 'declin
     .eq('from_id', fromId)
     .eq('to_id', sessionUid);
   if (error) console.warn('[backend] updateRequest:', error.message);
+}
+
+/** This device's follow-up tasks (keyed to the auth user, so they follow a logged-in account). */
+export async function fetchTasks(): Promise<Task[]> {
+  const client = await getClient();
+  if (!client || !sessionUid) return [];
+  const { data, error } = await client.from('tasks').select('data');
+  if (error) {
+    console.warn('[backend] fetchTasks:', error.message);
+    return [];
+  }
+  return (data as { data: Record<string, unknown> }[]).map(r => reviveTask(r.data));
+}
+
+/** Insert/update one task. */
+export async function upsertTask(task: Task): Promise<void> {
+  const client = await getClient();
+  if (!client || !sessionUid) return;
+  const { error } = await client
+    .from('tasks')
+    .upsert({ id: task.id, owner: sessionUid, data: serializeTask(task), updated_at: new Date().toISOString() }, { onConflict: 'owner,id' });
+  if (error) console.warn('[backend] upsertTask:', error.message);
+}
+
+/** Delete one task by id. */
+export async function deleteTask(id: string): Promise<void> {
+  const client = await getClient();
+  if (!client || !sessionUid) return;
+  const { error } = await client.from('tasks').delete().eq('owner', sessionUid).eq('id', id);
+  if (error) console.warn('[backend] deleteTask:', error.message);
 }
 
 /** Subscribe to live request changes (returns an unsubscribe fn). No-op when disabled. */

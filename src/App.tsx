@@ -21,8 +21,10 @@ import { I18nContext, useI18nState } from './i18n';
 import { GamificationProvider, useGamification } from './lib/gamification';
 import { locationToZoneId } from './lib/scheduleLogic';
 import * as backend from './lib/backend';
-import { loadProfile, profileToUser, type StoredProfile } from './lib/profile';
+import { loadProfile, profileToUser, hasProfile, type StoredProfile } from './lib/profile';
+import { loadTasks, saveTasks } from './lib/tasks';
 import { MOCK_USERS, setExtraUsers } from './data/mockData';
+import { Dialog, Button } from './ui';
 import type { Task, User } from './types';
 
 const MOCK_IDS = new Set(MOCK_USERS.map(u => u.id));
@@ -90,7 +92,7 @@ function AppInner() {
   const [tab, setTab] = useState<Tab>('people');
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [mySessionIds, setMySessionIds] = useState<Set<string>>(new Set());
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(() => loadTasks()); // restore offline tasks
   const [mapHighlight, setMapHighlight] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState('');
   const [requests, setRequests] = useState<MeetRequest[]>(SEED_REQUESTS);
@@ -100,6 +102,9 @@ function AppInner() {
   // Attendee list shown in Discover: the built-in demo crowd, merged with live backend
   // profiles when cloud sync is on. Stays just the demo crowd when the backend is off.
   const [people, setPeople] = useState<User[]>(MOCK_USERS);
+  // First-visit onboarding: a new user has no card yet, so we nudge them to create their
+  // own (rather than silently inheriting a pre-filled one).
+  const [showWelcome, setShowWelcome] = useState(() => !hasProfile(loadProfile()));
 
   // Central match registry — used by People, the requests inbox and the Connections tab.
   function addMatch(userId: string) {
@@ -148,10 +153,19 @@ function AppInner() {
     (async () => {
       const uid = await backend.initSession();
       if (!uid || cancelled) return;
-      backend.upsertMyProfile(profileToUser(loadProfile(), uid));
+      const myProfile = loadProfile();
+      if (hasProfile(myProfile)) backend.upsertMyProfile(profileToUser(myProfile, uid)); // don't publish a blank card
       await refreshProfiles();
       const conns = await backend.fetchConnections();
       if (!cancelled && conns.length) setMatchedIds(prev => new Set([...prev, ...conns]));
+      const cloudTasks = await backend.fetchTasks();
+      if (!cancelled && cloudTasks.length) {
+        setTasks(prev => {
+          const byId = new Map(prev.map(t => [t.id, t]));
+          for (const t of cloudTasks) byId.set(t.id, t); // cloud is source of truth across devices
+          return Array.from(byId.values());
+        });
+      }
       await refreshRequests();
       const unsubReq = backend.subscribeRequests(refreshRequests);
       const unsubProf = backend.subscribeProfiles(refreshProfiles);
@@ -163,8 +177,9 @@ function AppInner() {
 
   // Publish my edited card to the backend so others can discover me.
   function handleProfileSaved(p: StoredProfile) {
+    setShowWelcome(false);
     const uid = backend.currentUid();
-    if (uid) backend.upsertMyProfile(profileToUser(p, uid));
+    if (uid && hasProfile(p)) backend.upsertMyProfile(profileToUser(p, uid));
   }
 
   // Paint BOTH the root and body with the tab fill so no strip of a different colour ever
@@ -199,16 +214,23 @@ function AppInner() {
     if (adding) game.award('session_added');
   }
 
+  // Persist tasks offline on every change (cloud sync is handled per-op below).
+  useEffect(() => { saveTasks(tasks); }, [tasks]);
+
   function addTask(task: Task) {
     setTasks(prev => [task, ...prev]);
+    backend.upsertTask(task);
     game.award('contact_saved');
     setTab('tasks');
   }
   function toggleTaskDone(id: string) {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
+    const t = tasks.find(x => x.id === id);
+    if (t) backend.upsertTask({ ...t, done: !t.done });
   }
   function deleteTask(id: string) {
     setTasks(prev => prev.filter(t => t.id !== id));
+    backend.deleteTask(id);
   }
 
   function openMapForLocation(location: string) {
@@ -309,6 +331,24 @@ function AppInner() {
         {profileUser && <UserProfileDialog user={profileUser} onClose={() => setProfileUser(null)} />}
 
         {sharedCard && <SharedCardDialog card={sharedCard} onClose={() => { setSharedCard(null); history.replaceState(null, '', window.location.pathname); }} />}
+
+        {/* First-visit onboarding — create your own card (never inherit a pre-filled one). */}
+        {showWelcome && !sharedCard && (
+          <Dialog title="👋 Welcome to EventMatch" onClose={() => setShowWelcome(false)} width={360}>
+            <p style={{ margin: '0 0 14px', fontSize: 14, color: '#444', lineHeight: 1.5 }}>
+              Create your card so the right people can find you — your interests, skills and what
+              you're looking for. It lives on your device; you choose which contacts to reveal.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Button themeColor="primary" style={{ width: '100%', borderRadius: 10 }} onClick={() => { setShowWelcome(false); setTab('mycard'); }}>
+                Create my card
+              </Button>
+              <Button fillMode="flat" themeColor="primary" style={{ width: '100%' }} onClick={() => setShowWelcome(false)}>
+                Browse for now
+              </Button>
+            </div>
+          </Dialog>
+        )}
 
         {/* Achievement toast */}
         {game.toast && (

@@ -9,7 +9,7 @@ import { useGamification } from '../lib/gamification';
 import { ACHIEVEMENTS } from '../lib/gamificationLogic';
 import { clearAll, getOrCreateUid } from '../lib/storage';
 import {
-  CONTACT_FIELDS, loadProfile, saveProfile,
+  CONTACT_FIELDS, loadProfile, saveProfile, hasProfile,
   type StoredProfile, type ContactField,
 } from '../lib/profile';
 import { useT } from '../i18n';
@@ -33,7 +33,8 @@ export function MyCardPage({ mySessionIds, onProfileSaved }: Props) {
   const [uid] = useState(() => getOrCreateUid());
   const [profile, setProfile] = useState<StoredProfile>(() => loadProfile());
   const [draft, setDraft] = useState<StoredProfile>(profile);
-  const [editing, setEditing] = useState(false);
+  // A brand-new visitor (no card yet) lands straight in the editor.
+  const [editing, setEditing] = useState(() => !hasProfile(profile));
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -146,12 +147,20 @@ export function MyCardPage({ mySessionIds, onProfileSaved }: Props) {
     return (
       <div style={{ padding: '16px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h2 style={{ margin: 0, fontSize: 20 }}>{t.mycard.edit}</h2>
+          <h2 style={{ margin: 0, fontSize: 20 }}>{hasProfile(profile) ? t.mycard.edit : 'Create your card'}</h2>
           <div style={{ display: 'flex', gap: 8 }}>
-            <Button fillMode="outline" onClick={() => { setDraft(profile); setEditing(false); }}>{t.mycard.cancel}</Button>
-            <Button themeColor="primary" onClick={handleSave}>{t.mycard.save}</Button>
+            {hasProfile(profile) && (
+              <Button fillMode="outline" onClick={() => { setDraft(profile); setEditing(false); }}>{t.mycard.cancel}</Button>
+            )}
+            <Button themeColor="primary" onClick={handleSave} disabled={!draft.firstName.trim()}>{t.mycard.save}</Button>
           </div>
         </div>
+
+        {!hasProfile(profile) && (
+          <div style={{ background: '#f0eeff', border: '1px solid #d9d4ff', borderRadius: 10, padding: '10px 12px', marginBottom: 14, fontSize: 13, color: '#5a51d6' }}>
+            👋 Add at least your name to get discovered. You choose which contacts to reveal on a match.
+          </div>
+        )}
 
         <Card style={{ borderRadius: 12, border: '1px solid #e0e0e0', marginBottom: 16 }}>
           <CardBody>
@@ -180,7 +189,7 @@ export function MyCardPage({ mySessionIds, onProfileSaved }: Props) {
             </div>
 
             <div style={{ marginTop: 12 }}>
-              <Field label="Role / Title" value={draft.role} onChange={v => setDraft(d => ({ ...d, role: v }))} placeholder="iOS Developer" />
+              <Field label="Role / Title" value={draft.role} onChange={v => setDraft(d => ({ ...d, role: v }))} placeholder="e.g. Product Designer" />
             </div>
 
             <div style={{ marginTop: 12 }}>

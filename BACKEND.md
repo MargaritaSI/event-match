@@ -3,15 +3,21 @@
 EventMatch runs fully **offline on `localStorage`** out of the box. Turning on a free
 Supabase backend adds **real cross-device sync** for the core entities:
 
-| Synced (cloud)            | Stays on device (local) |
-| ------------------------- | ----------------------- |
-| Your profile / card       | Tasks & follow-ups      |
-| Connections (your matches)| Points, badges, level   |
-| Meeting requests (live)   | Selected schedule       |
+| Synced (cloud)             | Stays on device (local) |
+| -------------------------- | ----------------------- |
+| Your profile / card        | Points, badges, level   |
+| Connections (your matches) | Selected schedule       |
+| Meeting requests (live)    |                         |
+| Follow-up tasks            |                         |
 
-Identity is **anonymous, per device** (Supabase anonymous auth) — no login screen. Contact
-handles are **never** stored in the world-readable profiles table; they're still exchanged via
-the share-link / QR (which encodes only the contacts you chose to reveal).
+Identity is **anonymous, per device** (Supabase anonymous auth) — no login screen, no
+pre-filled card (each visitor creates their own). Contact handles are **never** stored in the
+world-readable profiles table; they're still exchanged via the share-link / QR (which encodes
+only the contacts you chose to reveal).
+
+> ⚠️ **Cross-device today:** because identity is per-device, your data is scoped to *this*
+> browser/phone. Opening the app on a second device starts a fresh anonymous account, so your
+> tasks/profile don't follow you there **yet** — that needs the login step below.
 
 It's **opt-in**: with no keys configured the app ignores all of this and works exactly as before.
 The supabase-js library is even code-split, so a keyless build never downloads it.
@@ -68,10 +74,27 @@ The data is tiny (small JSON rows), so the Supabase free tier (500 MB DB · 50k 
 realtime) covers a real event with plenty of room. Note the free project **pauses after ~1 week
 of inactivity** — just un-pause it from the dashboard.
 
+## Roadmap — cross-device login (next step)
+
+To make a user's card and tasks follow them from phone → laptop, add a **shared account
+identity** on top of the current per-device anonymous auth:
+
+1. **Magic-link email** (recommended) — Supabase built-in, free, no passwords, no OAuth setup.
+   Keep the frictionless anonymous start, then offer **"Sign in to sync across devices"**, which
+   **upgrades the existing anonymous account to a permanent one** (`supabase.auth.updateUser`
+   / `linkIdentity`) so all current data is preserved. Entering the same email on another device
+   lands in the same account → profile + tasks appear.
+2. **Google / OAuth** can be added later as a one-tap option (needs a Google OAuth app + client
+   id/secret in Supabase; for a future *native* iOS build, Apple also requires Sign in with Apple).
+
+The data layer is already keyed to `auth.uid()`, so once a device's anonymous account becomes a
+real account, its rows (profile, connections, requests, tasks) carry over with no migration.
+
 ## Architecture
 - `src/lib/backend/client.ts` — lazily builds the client from env keys (or stays null).
 - `src/lib/backend/mappers.ts` — pure row ⇄ domain mappings (unit-tested).
 - `src/lib/backend/index.ts` — async data layer; every call is a no-op when disabled.
-- `src/lib/profile.ts` — the "My Card" profile type + `profileToUser` mapping.
+- `src/lib/profile.ts` — the "My Card" profile type, blank default + `profileToUser` mapping.
+- `src/lib/tasks.ts` — offline (localStorage) task persistence.
 - `src/App.tsx` — boots the session, merges cloud profiles into discovery, syncs connections &
   requests, and subscribes to realtime. All behind the `isBackendEnabled` flag.

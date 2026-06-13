@@ -92,6 +92,29 @@ create policy requests_update_recipient on public.requests
   for update using (to_id = auth.uid()::text) with check (to_id = auth.uid()::text);
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- tasks — private follow-up tasks. Keyed to the auth user so they follow a logged-in
+-- account across devices. Only the owner can read/write them.
+-- ─────────────────────────────────────────────────────────────────────────────
+create table if not exists public.tasks (
+  id         text not null,                -- app-generated task id
+  owner      text not null,                -- = auth.uid()::text
+  data       jsonb not null default '{}',  -- the full Task (dueDate as ISO string)
+  updated_at timestamptz not null default now(),
+  primary key (owner, id)
+);
+
+alter table public.tasks enable row level security;
+
+drop policy if exists tasks_select_own on public.tasks;
+create policy tasks_select_own on public.tasks for select using (owner = auth.uid()::text);
+drop policy if exists tasks_insert_own on public.tasks;
+create policy tasks_insert_own on public.tasks for insert with check (owner = auth.uid()::text);
+drop policy if exists tasks_update_own on public.tasks;
+create policy tasks_update_own on public.tasks for update using (owner = auth.uid()::text) with check (owner = auth.uid()::text);
+drop policy if exists tasks_delete_own on public.tasks;
+create policy tasks_delete_own on public.tasks for delete using (owner = auth.uid()::text);
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- Realtime — let the front-end subscribe to live inserts/updates.
 -- (Safe to re-run: ignore "already member of publication" errors.)
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -100,4 +123,5 @@ begin
   begin execute 'alter publication supabase_realtime add table public.profiles';    exception when others then null; end;
   begin execute 'alter publication supabase_realtime add table public.connections';  exception when others then null; end;
   begin execute 'alter publication supabase_realtime add table public.requests';     exception when others then null; end;
+  begin execute 'alter publication supabase_realtime add table public.tasks';        exception when others then null; end;
 end $$;
