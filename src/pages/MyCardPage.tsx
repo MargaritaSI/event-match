@@ -12,6 +12,7 @@ import {
   CONTACT_FIELDS, loadProfile, saveProfile, hasProfile,
   type StoredProfile, type ContactField,
 } from '../lib/profile';
+import type { AuthStatus } from '../lib/backend';
 import { useT } from '../i18n';
 import { FACETS } from '../data/mockData';
 import type { Interest, Intent } from '../types';
@@ -24,9 +25,13 @@ const MAX_INTERESTS = 10;
 interface Props {
   mySessionIds: Set<string>;
   onProfileSaved?: (p: StoredProfile) => void;
+  backendEnabled?: boolean;
+  auth?: AuthStatus;
+  onSignIn?: (email: string) => Promise<{ ok: boolean; error?: string; converting?: boolean }>;
+  onSignOut?: () => void;
 }
 
-export function MyCardPage({ mySessionIds, onProfileSaved }: Props) {
+export function MyCardPage({ mySessionIds, onProfileSaved, backendEnabled, auth, onSignIn, onSignOut }: Props) {
   const { t } = useT();
   const game = useGamification();
   // Load a saved profile from localStorage so a returning visitor keeps their card.
@@ -37,9 +42,21 @@ export function MyCardPage({ mySessionIds, onProfileSaved }: Props) {
   const [editing, setEditing] = useState(() => !hasProfile(profile));
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [email, setEmail] = useState('');
+  const [signInMsg, setSignInMsg] = useState<string | null>(null);
+  const [signingIn, setSigningIn] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const f = t.mycard.fields;
+
+  async function handleSignIn() {
+    if (!onSignIn || !email.trim()) return;
+    setSigningIn(true);
+    setSignInMsg(null);
+    const res = await onSignIn(email.trim());
+    setSigningIn(false);
+    setSignInMsg(res.ok ? `📧 Check ${email.trim()} for a sign-in link.` : `⚠️ ${res.error || 'Could not send the link.'}`);
+  }
 
   function handleSave() {
     setProfile(draft);
@@ -476,11 +493,50 @@ export function MyCardPage({ mySessionIds, onProfileSaved }: Props) {
         </CardBody>
       </Card>
 
+      {/* Sync across devices (only when cloud backend is configured) */}
+      {backendEnabled && (
+        <Card style={{ borderRadius: 14, border: '1px solid #d9d4ff', marginBottom: 16 }}>
+          <CardBody>
+            {auth?.email ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 13, color: '#333' }}>
+                  ✅ Signed in as <strong>{auth.email}</strong><br />
+                  <span style={{ fontSize: 12, color: '#888' }}>Your card &amp; tasks sync across your devices.</span>
+                </div>
+                <Button fillMode="outline" size="small" onClick={() => onSignOut?.()}>Sign out</Button>
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>📲 Sync across devices</div>
+                <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>
+                  Sign in with your email to keep your card &amp; tasks when you open EventMatch on another device. No password — we send a magic link.
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.value as string)}
+                    placeholder="you@email.com"
+                    style={{ flex: 1, minWidth: 180 }}
+                  />
+                  <Button themeColor="primary" onClick={handleSignIn} disabled={signingIn || !email.trim()}>
+                    {signingIn ? 'Sending…' : 'Send link'}
+                  </Button>
+                </div>
+                {signInMsg && <div style={{ fontSize: 12, color: signInMsg.startsWith('⚠️') ? '#c0392b' : '#5a51d6', marginTop: 8 }}>{signInMsg}</div>}
+              </div>
+            )}
+          </CardBody>
+        </Card>
+      )}
+
       {/* Privacy / data */}
       <Card style={{ borderRadius: 14, border: '1px solid #f0d0d0' }}>
         <CardBody>
           <div style={{ fontSize: 12, color: '#999', marginBottom: 8 }}>
-            Your profile is saved on this device only (no server). Your ID: <strong>{uid}</strong>
+            {auth?.email
+              ? <>Your profile syncs to your account (<strong>{auth.email}</strong>). Contacts stay on this device.</>
+              : <>Your profile is saved on this device. Your ID: <strong>{uid}</strong></>}
           </div>
           <Button fillMode="outline" themeColor="error" size="small" onClick={deleteAllData}>
             🗑 Delete all my data

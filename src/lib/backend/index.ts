@@ -17,9 +17,90 @@ export { isBackendEnabled };
 
 let sessionUid: string | null = null;
 
+export interface AuthStatus {
+  signedIn: boolean;     // has any session (anonymous counts)
+  isAnonymous: boolean;  // anonymous device account (not yet email-verified)
+  email: string | null;  // present once signed in with email
+}
+
 /** The current device's auth uid (null until initSession resolves, or when disabled). */
 export function currentUid(): string | null {
   return sessionUid;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toStatus(session: any): AuthStatus {
+  const user = session?.user;
+  return {
+    signedIn: Boolean(user),
+    isAnonymous: Boolean(user?.is_anonymous),
+    email: user?.email ?? null,
+  };
+}
+
+function appRedirectUrl(): string {
+  // Strip any existing hash/query so the magic link returns cleanly to the app.
+  return window.location.href.split('#')[0].split('?')[0];
+}
+
+/** Current auth status (anonymous when backend is on but not yet signed in with email). */
+export async function getAuthStatus(): Promise<AuthStatus> {
+  const client = await getClient();
+  if (!client) return { signedIn: false, isAnonymous: false, email: null };
+  const { data: { session } } = await client.auth.getSession();
+  return toStatus(session);
+}
+
+/**
+ * Send a magic link. If the current account is anonymous, this CONVERTS it to a permanent
+ * account tied to the email (same uid → all existing data is preserved). Otherwise it's a
+ * normal sign-in to that email's account. The user finishes by clicking the link in the email.
+ */
+export async function signInWithEmail(email: string): Promise<{ ok: boolean; error?: string; converting?: boolean }> {
+  const client = await getClient();
+  if (!client) return { ok: false, error: 'Cloud sync is not configured.' };
+  const { data: { session } } = await client.auth.getSession();
+  const emailRedirectTo = appRedirectUrl();
+  if (session?.user?.is_anonymous) {
+    const { error } = await client.auth.updateUser({ email }, { emailRedirectTo });
+    return error ? { ok: false, error: error.message } : { ok: true, converting: true };
+  }
+  const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo } });
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
+
+/** Sign out and start a fresh anonymous session. */
+export async function signOut(): Promise<void> {
+  const client = await getClient();
+  if (!client) return;
+  await client.auth.signOut();
+  sessionUid = null;
+  await initSession();
+}
+
+/** Subscribe to auth changes (sign-in, email-confirmed). Returns an unsubscribe fn. */
+export function onAuthChange(cb: (status: AuthStatus) => void): () => void {
+  if (!isBackendEnabled) return () => {};
+  let unsub: (() => void) | null = null;
+  let cancelled = false;
+  void getClient().then(client => {
+    if (!client || cancelled) return;
+    const { data } = client.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) sessionUid = session.user.id;
+      cb(toStatus(session));
+    });
+    unsub = () => data.subscription.unsubscribe();
+  });
+  return () => { cancelled = true; unsub?.(); };
+}
+
+/** The current user's own profile row (used to restore the card after signing in). */
+export async function fetchMyProfile(): Promise<User | null> {
+  const client = await getClient();
+  if (!client || !sessionUid) return null;
+  const { data, error } = await client.from('profiles').select('id, name, data').eq('id', sessionUid).maybeSingle();
+  if (error || !data) return null;
+  return rowToUser(data as ProfileRow);
 }
 
 /** Ensure an anonymous auth session exists. Returns the uid, or null when disabled/failed. */

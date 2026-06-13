@@ -95,3 +95,28 @@ export function profileToUser(p: StoredProfile, id: string): User {
     event: EVENT_NAME,
   };
 }
+
+/**
+ * Reverse of profileToUser: map a cloud `User` back onto the editable profile fields, so a
+ * signed-in user's card is restored on a new device. Returns a PARTIAL — contact handles and
+ * other device-local fields (photo, city/country, showOnMatch) are intentionally left to merge
+ * over the existing local profile, since contacts are never stored in the cloud.
+ */
+export function userToProfile(u: User): Partial<StoredProfile> {
+  const [firstName, ...rest] = (u.name || '').trim().split(/\s+/);
+  return {
+    firstName: firstName || '',
+    lastName: rest.join(' '),
+    role: u.role || '',
+    company: u.company || '',
+    bio: u.bio || '',
+    interests: u.interests || [],
+    intents: u.intents || [],
+    skills: u.skills || [],
+    hobbies: (u.hobbies || []).join(', '),
+    lookingFor: u.lookingFor || '',
+    canHelp: u.canHelp || '',
+    speaker: Boolean(u.speaker),
+    speakerTopic: u.speakerTopic || '',
+  };
+}

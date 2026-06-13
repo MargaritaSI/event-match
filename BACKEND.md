@@ -10,14 +10,12 @@ Supabase backend adds **real cross-device sync** for the core entities:
 | Meeting requests (live)    |                         |
 | Follow-up tasks            |                         |
 
-Identity is **anonymous, per device** (Supabase anonymous auth) — no login screen, no
-pre-filled card (each visitor creates their own). Contact handles are **never** stored in the
-world-readable profiles table; they're still exchanged via the share-link / QR (which encodes
-only the contacts you chose to reveal).
-
-> ⚠️ **Cross-device today:** because identity is per-device, your data is scoped to *this*
-> browser/phone. Opening the app on a second device starts a fresh anonymous account, so your
-> tasks/profile don't follow you there **yet** — that needs the login step below.
+Identity starts **anonymous, per device** (Supabase anonymous auth) — no login screen, no
+pre-filled card (each visitor creates their own). To follow your card & tasks to another device,
+**sign in with your email** (My Card → *Sync across devices*) — a passwordless magic link that
+**upgrades your anonymous account in place**, preserving everything. Contact handles are **never**
+stored in the world-readable profiles table; they're still exchanged via the share-link / QR
+(which encodes only the contacts you chose to reveal).
 
 It's **opt-in**: with no keys configured the app ignores all of this and works exactly as before.
 The supabase-js library is even code-split, so a keyless build never downloads it.
@@ -36,8 +34,12 @@ The supabase-js library is even code-split, so a keyless build never downloads i
 - This creates `profiles`, `connections`, `requests`, their Row-Level-Security policies, and
   enables realtime. It's safe to re-run.
 
-### 3. Enable anonymous sign-ins
+### 3. Enable auth (anonymous + email magic-link)
 - **Authentication → Sign In / Providers → Anonymous sign-ins → Enable.**
+- The **Email** provider is on by default (magic links work out of the box).
+- **Authentication → URL Configuration:** set **Site URL** to your app URL and add it to
+  **Redirect URLs** (e.g. `https://margaritasi.github.io/event-match/` and
+  `http://localhost:5174/` for dev) so the magic link returns to the app.
 
 ### 4. Grab your keys
 - **Project Settings → API** (or **Data API**).
@@ -74,21 +76,20 @@ The data is tiny (small JSON rows), so the Supabase free tier (500 MB DB · 50k 
 realtime) covers a real event with plenty of room. Note the free project **pauses after ~1 week
 of inactivity** — just un-pause it from the dashboard.
 
-## Roadmap — cross-device login (next step)
+## Cross-device sign-in (implemented)
 
-To make a user's card and tasks follow them from phone → laptop, add a **shared account
-identity** on top of the current per-device anonymous auth:
+**My Card → Sync across devices** → enter email → magic link. How it works:
 
-1. **Magic-link email** (recommended) — Supabase built-in, free, no passwords, no OAuth setup.
-   Keep the frictionless anonymous start, then offer **"Sign in to sync across devices"**, which
-   **upgrades the existing anonymous account to a permanent one** (`supabase.auth.updateUser`
-   / `linkIdentity`) so all current data is preserved. Entering the same email on another device
-   lands in the same account → profile + tasks appear.
-2. **Google / OAuth** can be added later as a one-tap option (needs a Google OAuth app + client
-   id/secret in Supabase; for a future *native* iOS build, Apple also requires Sign in with Apple).
+- **First device (anonymous):** signing in calls `supabase.auth.updateUser({ email })`, which
+  **converts the anonymous account to a permanent one with the same uid** — so the card,
+  connections, requests and tasks already created carry over with **no migration**.
+- **Second device:** entering the same email sends a magic link that signs into the **same
+  account**, and the app **restores your card from the cloud** and pulls your tasks. (Contact
+  handles aren't synced — they're device-local by design — so re-add them if you want them shown.)
+- On sign-out the app starts a fresh anonymous session.
 
-The data layer is already keyed to `auth.uid()`, so once a device's anonymous account becomes a
-real account, its rows (profile, connections, requests, tasks) carry over with no migration.
+**Future:** a one-tap **Google / OAuth** button could be added (needs a Google OAuth app + client
+id/secret in Supabase; for a future *native* iOS build, Apple also requires Sign in with Apple).
 
 ## Architecture
 - `src/lib/backend/client.ts` — lazily builds the client from env keys (or stays null).

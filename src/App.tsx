@@ -21,7 +21,7 @@ import { I18nContext, useI18nState } from './i18n';
 import { GamificationProvider, useGamification } from './lib/gamification';
 import { locationToZoneId } from './lib/scheduleLogic';
 import * as backend from './lib/backend';
-import { loadProfile, profileToUser, hasProfile, type StoredProfile } from './lib/profile';
+import { loadProfile, saveProfile, profileToUser, userToProfile, hasProfile, type StoredProfile } from './lib/profile';
 import { loadTasks, saveTasks } from './lib/tasks';
 import { MOCK_USERS, setExtraUsers } from './data/mockData';
 import { Dialog, Button } from './ui';
@@ -105,6 +105,10 @@ function AppInner() {
   // First-visit onboarding: a new user has no card yet, so we nudge them to create their
   // own (rather than silently inheriting a pre-filled one).
   const [showWelcome, setShowWelcome] = useState(() => !hasProfile(loadProfile()));
+  // Auth (cloud only): anonymous by default; becomes a real account after magic-link sign-in.
+  const [auth, setAuth] = useState<backend.AuthStatus>({ signedIn: false, isAnonymous: false, email: null });
+  // Bumped to remount My Card after the profile is restored from the cloud on sign-in.
+  const [profileNonce, setProfileNonce] = useState(0);
 
   // Central match registry — used by People, the requests inbox and the Connections tab.
   function addMatch(userId: string) {
@@ -150,9 +154,30 @@ function AppInner() {
       });
     }
 
+    // When the user finishes the magic-link sign-in, restore their account's card and re-sync.
+    async function onSignedIn() {
+      const mine = await backend.fetchMyProfile();
+      if (cancelled) return;
+      if (mine) {
+        saveProfile({ ...loadProfile(), ...userToProfile(mine) }); // restore card (contacts stay local)
+        setProfileNonce(n => n + 1);
+        setShowWelcome(false);
+      } else if (hasProfile(loadProfile())) {
+        const uid = backend.currentUid();
+        if (uid) backend.upsertMyProfile(profileToUser(loadProfile(), uid)); // carry my local card into the account
+      }
+      await refreshProfiles();
+      await refreshRequests();
+      const ct = await backend.fetchTasks();
+      if (!cancelled && ct.length) {
+        setTasks(prev => { const m = new Map(prev.map(t => [t.id, t])); ct.forEach(t => m.set(t.id, t)); return Array.from(m.values()); });
+      }
+    }
+
     (async () => {
       const uid = await backend.initSession();
       if (!uid || cancelled) return;
+      setAuth(await backend.getAuthStatus());
       const myProfile = loadProfile();
       if (hasProfile(myProfile)) backend.upsertMyProfile(profileToUser(myProfile, uid)); // don't publish a blank card
       await refreshProfiles();
@@ -169,7 +194,12 @@ function AppInner() {
       await refreshRequests();
       const unsubReq = backend.subscribeRequests(refreshRequests);
       const unsubProf = backend.subscribeProfiles(refreshProfiles);
-      cleanup = () => { unsubReq(); unsubProf(); };
+      const unsubAuth = backend.onAuthChange(status => {
+        if (cancelled) return;
+        setAuth(status);
+        if (status.email) void onSignedIn(); // email present → just signed in / confirmed
+      });
+      cleanup = () => { unsubReq(); unsubProf(); unsubAuth(); };
     })();
 
     return () => { cancelled = true; cleanup(); };
@@ -387,7 +417,7 @@ function AppInner() {
           {tab === 'sponsors'    && <SponsorsPage onOpenMap={openMapForLocation} />}
           {tab === 'organisers'  && <OrganisersPage myMatches={matchedIds.size} />}
           {tab === 'leaderboard' && <LeaderboardPage />}
-          {tab === 'mycard'      && <MyCardPage mySessionIds={mySessionIds} onProfileSaved={handleProfileSaved} />}
+          {tab === 'mycard'      && <MyCardPage key={profileNonce} mySessionIds={mySessionIds} onProfileSaved={handleProfileSaved} backendEnabled={backend.isBackendEnabled} auth={auth} onSignIn={backend.signInWithEmail} onSignOut={backend.signOut} />}
           </div>
 
           {/* Footer illustration — bigger, centered at the bottom on the fill colour (outside the white panel) */}
