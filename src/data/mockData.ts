@@ -63,7 +63,7 @@ export const MOCK_USERS: User[] = [
 export const FACETS: { key: string; label: string; options: string[] }[] = [
   { key: 'programming', label: '💻 Programming', options: ['JavaScript', 'TypeScript', 'Python', 'Go', 'Rust', 'Swift', 'Kotlin', 'Dart', 'Java', 'C#'] },
   { key: 'design', label: '🎨 Design', options: ['UI/UX', 'Web design', 'Graphic design', 'AI graphics', 'Motion design', 'Branding'] },
-  { key: 'sport', label: '🏃 Sport', options: ['Running', 'Cycling', 'Climbing', 'Yoga', 'Swimming', 'Football', 'Tennis', 'Gym', 'Surfing'] },
+  { key: 'sport', label: '🏃 Sport', options: ['Running', 'Cycling', 'Climbing', 'Yoga', 'Swimming', 'Football', 'Basketball', 'Tennis', 'Gym', 'Surfing'] },
 ];
 
 /** Short scannable badge code for an attendee, e.g. "EM-007". Matches the QR concept. */

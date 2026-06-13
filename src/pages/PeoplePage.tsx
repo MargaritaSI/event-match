@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Button } from '../ui';
 import { Input } from '../ui';
-import { MOCK_USERS, ICE_BREAKERS, INTEREST_LABELS, INTENT_LABELS, CURRENT_USER, FACETS, EVENT_NAME } from '../data/mockData';
+import { MOCK_USERS, ICE_BREAKERS, INTEREST_LABELS, INTENT_LABELS, FACETS, EVENT_NAME } from '../data/mockData';
+import { loadProfile } from '../lib/profile';
 import { InterestBadge } from '../components/InterestBadge';
 import { Avatar } from '../components/Avatar';
 import { filterAndSort, commonInterests, commonSkills, affinity, topInterests } from '../lib/peopleLogic';
@@ -10,9 +11,6 @@ import { intentSynergies } from '../lib/intentLogic';
 import { useT } from '../i18n';
 import type { User, Interest } from '../types';
 
-const MY_INTERESTS: Interest[] = ['health', 'mobile', 'startup', 'design'];
-const MY_SKILLS = CURRENT_USER.skills || [];
-const MY_INTENTS = CURRENT_USER.intents || [];
 // Filter chips ordered by how common each interest is in this crowd (most popular first)
 const FILTER_INTERESTS: Interest[] = topInterests(MOCK_USERS).map(x => x.interest);
 
@@ -26,6 +24,13 @@ interface Props {
 
 export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile, users = MOCK_USERS }: Props) {
   const { t } = useT();
+  // "For me" / affinity is computed against YOUR actual card (interests, skills, intents),
+  // read once on mount. Switching tabs remounts this page, so it picks up card edits.
+  const me = useMemo(() => loadProfile(), []);
+  const MY_INTERESTS = me.interests;
+  const MY_SKILLS = me.skills || [];
+  const MY_INTENTS = me.intents || [];
+  const hasMyTraits = MY_INTERESTS.length > 0 || MY_SKILLS.length > 0;
   const matched = matchedIds;
   const [expanded, setExpanded] = useState<string | null>(null);
   const [pendingSent, setPendingSent] = useState<Set<string>>(new Set());
@@ -77,11 +82,11 @@ export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile,
     () => filterAndSort(users, {
       interests: Array.from(interestFilters),
       skills: Array.from(skillFilters),
-      match: matchOn,
+      match: matchOn && hasMyTraits, // without any interests/skills on your card, "For me" can't rank — show all
       speaker: speakerOn,
       search, sort, myInterests: MY_INTERESTS, mySkills: MY_SKILLS,
     }),
-    [users, search, interestFilters, skillFilters, matchOn, speakerOn, sort],
+    [users, search, interestFilters, skillFilters, matchOn, speakerOn, sort, hasMyTraits, MY_INTERESTS, MY_SKILLS],
   );
 
   return (
@@ -142,6 +147,12 @@ export function PeoplePage({ matchedIds, onMatch, onOpenProfile: _onOpenProfile,
               background: '#2e7d32', color: '#fff', fontWeight: 600,
             }}>{s} ✕</button>
           ))}
+        </div>
+      )}
+
+      {matchOn && !hasMyTraits && (
+        <div style={{ fontSize: 12, color: '#b26a00', background: '#fff6e5', border: '1px solid #ffe0a3', borderRadius: 8, padding: '7px 10px', marginBottom: 8 }}>
+          ✨ Add interests or skills to your card (My Card) so “For me” can rank people for you.
         </div>
       )}
 

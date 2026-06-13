@@ -16,7 +16,7 @@ import {
   totalPoints, levelFromPoints, unlockedAchievements, newlyUnlocked, type Counts,
 } from './gamificationLogic';
 import { profileToUser, userToProfile, DEFAULT_PROFILE, type StoredProfile } from './profile';
-import { MOCK_USERS, getUserById, findUsers, userCode } from '../data/mockData';
+import { MOCK_USERS, getUserById, findUsers, userCode, FACETS } from '../data/mockData';
 import { SESSIONS } from '../data/schedule';
 import type { Interest } from '../types';
 
@@ -43,6 +43,29 @@ describe('Discover: "For me" surfaces only relevant people, best match first', (
 
   it('surfaces Liam (shares mobile/health/ai + Swift) as a strong match', () => {
     expect(results.find(u => u.id === '4')).toBeTruthy();
+  });
+});
+
+describe('"For me" reflects YOUR card, not a fixed persona', () => {
+  it('a narrow card (only gamedev) makes "For me" far smaller than "All"', () => {
+    const all = filterAndSort(MOCK_USERS, { search: '', sort: 'name', myInterests: ['gamedev'] });
+    const forMe = filterAndSort(MOCK_USERS, { match: true, search: '', sort: 'common', myInterests: ['gamedev'], mySkills: [] });
+    expect(forMe.length).toBeLessThan(all.length);
+    expect(forMe.every(u => u.interests.includes('gamedev'))).toBe(true); // only the game dev(s)
+  });
+});
+
+describe('A unique skill on your card is selectable and discoverable', () => {
+  it('the sport facet now includes Basketball', () => {
+    const sport = FACETS.find(f => f.key === 'sport')!;
+    expect(sport.options).toContain('Basketball');
+  });
+
+  it('filtering by a unique skill surfaces the attendee who has it', () => {
+    const baller = { ...getUserById('1')!, id: 'baller', name: 'Bea Baller', skills: ['Basketball'] };
+    const res = filterAndSort([...MOCK_USERS, baller], { skills: ['Basketball'], search: '', sort: 'name', myInterests: [] });
+    expect(res.map(u => u.id)).toContain('baller');
+    expect(res.every(u => userHasSkill(u, 'Basketball'))).toBe(true);
   });
 });
 
