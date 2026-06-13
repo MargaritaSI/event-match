@@ -60,6 +60,8 @@ create policy connections_insert_own on public.connections
 drop policy if exists connections_delete_own on public.connections;
 create policy connections_delete_own on public.connections
   for delete using (owner = auth.uid()::text);
+-- (No UPDATE policy by design: a connection just exists. The app adds it with
+--  ON CONFLICT DO NOTHING, so re-adding never triggers an update.)
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- requests — meeting requests. Sender = from_id, recipient = to_id.

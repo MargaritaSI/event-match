@@ -165,7 +165,9 @@ export async function addConnection(targetId: string, card?: unknown): Promise<v
   if (!client || !sessionUid) return;
   const { error } = await client
     .from('connections')
-    .upsert({ owner: sessionUid, target_id: targetId, target_card: card ?? null }, { onConflict: 'owner,target_id' });
+    // ignoreDuplicates → ON CONFLICT DO NOTHING, so a re-add is a no-op and needs no UPDATE
+    // policy (a connection just exists; there's nothing to update).
+    .upsert({ owner: sessionUid, target_id: targetId, target_card: card ?? null }, { onConflict: 'owner,target_id', ignoreDuplicates: true });
   if (error) console.warn('[backend] addConnection:', error.message);
 }
 
